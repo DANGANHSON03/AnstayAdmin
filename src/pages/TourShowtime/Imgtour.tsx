@@ -8,12 +8,12 @@ export default function Imgtour() {
   return (
     <>
       <PageMeta
-        title="Lịch chiếu"
+        title="Thêm ảnh tour"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       />
-      <PageBreadcrumb pageTitle="Lịch chiếu" />
+      <PageBreadcrumb pageTitle="Thêm ảnh tour" />
       <div className="space-y-6">
-        <ComponentCard title="Danh sách lịch chiếu">
+        <ComponentCard title="Danh sách ảnh tour">
           <ImgTourOne />
         </ComponentCard>
       </div>

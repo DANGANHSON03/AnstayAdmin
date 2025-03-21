@@ -10,9 +10,9 @@ export default function ImgAptPage() {
         title="Thêm ảnh căn hộ"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       />
-      <PageBreadcrumb pageTitle="Tour" />
+      <PageBreadcrumb pageTitle="Ảnh căn hộ" />
       <div className="space-y-6">
-        <ComponentCard title="Danh sách tour">
+        <ComponentCard title="Danh sách ảnh căn hộ">
           <ImgApt />
         </ComponentCard>
       </div>

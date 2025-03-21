@@ -10,9 +10,9 @@ export default function AptPage() {
         title="Thêm căn hộ"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       />
-      <PageBreadcrumb pageTitle="Tour" />
+      <PageBreadcrumb pageTitle="Căn hộ" />
       <div className="space-y-6">
-        <ComponentCard title="Danh sách tour">
+        <ComponentCard title="Danh sách căn hộ">
           <Apt />
         </ComponentCard>
       </div>

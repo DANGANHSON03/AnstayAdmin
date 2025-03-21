@@ -4,11 +4,11 @@ import PageMeta from "../../components/common/PageMeta";
 
 import TourOne from "../../components/tourshowtime/TourOne";
 
-export default function Movie() {
+export default function Tour() {
   return (
     <>
       <PageMeta
-        title="React.js Basic Tables Dashboard | TailAdmin - Next.js Admin Dashboard Template"
+        title="Thêm thông tin tour"
         description="This is React.js Basic Tables Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
       />
       <PageBreadcrumb pageTitle="Tour" />
