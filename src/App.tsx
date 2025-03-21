@@ -20,11 +20,14 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Theater from "./pages/TheaterRoom/Theater";
 import Room from "./pages/TheaterRoom/Room";
-
-import Movies from "./pages/MovieShowtime/Movie";
-import Showtime from "./pages/MovieShowtime/Showtime";
-
-
+import Tour from "./pages/TourShowtime/Tour";
+import Imgtour from "./pages/TourShowtime/Imgtour";
+import AptPage from "./pages/AptPages/AptPage";
+import ImgAptPage from "./pages/AptPages/ImgAptPage";
+import CIFPage from "./pages/CIF/CIFPage";
+import PermsPage from "./pages/PermsPage/PermsPage";
+import HistoryTourOne from "./components/HistoryOne/HistoryTourOne";
+import HistoryAptOne from "./components/HistoryOne/HistoryAptOne";
 export default function App() {
   return (
     <>
@@ -43,16 +46,21 @@ export default function App() {
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
-      
-            {/* Movies */}
-            <Route path="/movie" element={<Movies />} />
-            <Route path="/showtime" element={<Showtime />} />
+            {/* Tour */}
+            <Route path="/tour" element={<Tour />} />
+            <Route path="/imgtour" element={<Imgtour />} />
+            <Route path="/apt" element={<AptPage />} />
+            <Route path="/imgapt" element={<ImgAptPage />} />
+            <Route path="/cif" element={<CIFPage />} />
+            <Route path="/perms" element={<PermsPage />} />
+            <Route path="/history-tour" element={<HistoryTourOne />} />
+            <Route path="/history-apt" element={<HistoryAptOne />} />
 
+            {/* Components */}
 
             {/* Tables */}
             <Route path="/theater" element={<Theater />} />
             <Route path="/room" element={<Room />} />
-
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />
