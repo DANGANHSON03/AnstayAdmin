@@ -18,8 +18,6 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
-import Theater from "./pages/TheaterRoom/Theater";
-import Room from "./pages/TheaterRoom/Room";
 import Tour from "./pages/TourShowtime/Tour";
 import Imgtour from "./pages/TourShowtime/Imgtour";
 import AptPage from "./pages/AptPages/AptPage";
@@ -57,10 +55,6 @@ export default function App() {
             <Route path="/history-apt" element={<HistoryAptOne />} />
 
             {/* Components */}
-
-            {/* Tables */}
-            <Route path="/theater" element={<Theater />} />
-            <Route path="/room" element={<Room />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

@@ -35,12 +35,7 @@ export default function MonthlyTarget() {
       height: 250,
     },
     colors: ["#465FFF", "#10B981", "#F43F5E", "#FB923C"],
-    labels: [
-      "Khách sạn Hà Nội",
-      "Căn hộ Hà Nội",
-      "Khách sạn HCM",
-      "Căn hộ HCM",
-    ],
+    labels: ["Tour Hà Nội", "Căn hộ Hà Nội", "Tour Hạ Long", "Căn hộ Hạ Long"],
     legend: {
       position: "bottom",
       labels: {
@@ -109,7 +104,7 @@ export default function MonthlyTarget() {
                 <div className="flex flex-col items-start">
                   <HiOutlineHome className="w-8 h-8 text-blue-500 mb-2" />
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Khách sạn
+                    Tour
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
                     {mockStats.hanoi.hotels.orders} đơn
@@ -147,14 +142,14 @@ export default function MonthlyTarget() {
             <h4 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               {" "}
               {/* Reduced from mb-3 */}
-              Khu Vực Hồ Chí Minh
+              Khu Vực Hạ Long
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
                 <div className="flex flex-col items-start">
                   <HiOutlineHome className="w-8 h-8 text-blue-500 mb-2" />
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Khách sạn
+                    Tour
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
                     {mockStats.hcm.hotels.orders} đơn

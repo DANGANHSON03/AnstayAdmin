@@ -22,6 +22,7 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
+  disabled?: boolean;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Lịch làm việc",
     path: "/calendar",
+    disabled: true,
   },
   {
     icon: <UserCircleIcon />,
@@ -191,7 +193,7 @@ const AppSidebar: React.FC = () => {
                 to={nav.path}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
+                } ${nav.disabled ? "opacity-50 pointer-events-none" : ""}`}
               >
                 <span
                   className={`menu-item-icon-size ${
