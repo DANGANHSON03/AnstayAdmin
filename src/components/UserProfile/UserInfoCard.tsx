@@ -11,17 +11,31 @@ export default function UserInfoCard() {
     id: "",
     fullName: "",
     email: "",
-    phoneNumber: "",
-    dateOfBirth: "",
-    avatarUrl: "/images/user/owner.jpg",
+    phone: "",
+    address: "",
+    avatar: "",
+    role: "",
+    verified: false,
+    dateOfBirthday: "",
   });
 
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    phoneNumber: "",
-    dateOfBirth: "",
+    phone: "",
+    address: "",
+    dateOfBirthday: "",
   });
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   useEffect(() => {
     const getUserData = async () => {
@@ -50,8 +64,9 @@ export default function UserInfoCard() {
           setFormData({
             fullName: response.data.fullName || "",
             email: response.data.email || "",
-            phoneNumber: response.data.phoneNumber || "",
-            dateOfBirth: response.data.dateOfBirth || "",
+            phone: response.data.phone || "",
+            address: response.data.address || "",
+            dateOfBirthday: response.data.dateOfBirthday || "",
           });
         }
       } catch (error) {
@@ -81,9 +96,19 @@ export default function UserInfoCard() {
         return;
       }
 
+      // Combine existing userData with new formData
+      const updatedData = {
+        ...userData, // Keep all existing data
+        ...formData, // Override with new values from form
+        id: userData.id, // Ensure ID is preserved
+        role: userData.role, // Preserve role
+        verified: userData.verified, // Preserve verified status
+        avatar: userData.avatar, // Preserve avatar
+      };
+
       const response = await axios.put(
-        `http://localhost:8085/api/users/${id}`,
-        formData,
+        `http://localhost:8085/api/users/update/${id}`,
+        updatedData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -95,20 +120,16 @@ export default function UserInfoCard() {
       console.log("Update Response:", response.data);
 
       if (response.data) {
-        // Update the userData state with the new values
-        setUserData({
-          ...userData,
-          ...formData,
-        });
+        setUserData(response.data);
 
-        // Also update the userData in localStorage if needed
+        // Update localStorage
         const storedUserData = JSON.parse(localStorage.getItem("userData"));
         localStorage.setItem(
           "userData",
           JSON.stringify({
             ...storedUserData,
-            fullName: formData.fullName,
-            email: formData.email,
+            fullName: response.data.fullName,
+            email: response.data.email,
           })
         );
 
@@ -116,7 +137,6 @@ export default function UserInfoCard() {
       }
     } catch (error) {
       console.error("Failed to update user data:", error.response || error);
-      // You might want to add error handling here (show error message to user)
     }
   };
 
@@ -152,7 +172,7 @@ export default function UserInfoCard() {
                 Số điện thoại
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {userData.phoneNumber}
+                {userData.phone}
               </p>
             </div>
 
@@ -161,7 +181,7 @@ export default function UserInfoCard() {
                 Ngày sinh
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {userData.dateOfBirth}
+                {formatDate(userData.dateOfBirthday)}
               </p>
             </div>
             <div>
@@ -169,7 +189,7 @@ export default function UserInfoCard() {
                 Địa chỉ
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {userData.dateOfBirth}
+                {userData.address}
               </p>
             </div>
           </div>
@@ -240,8 +260,8 @@ export default function UserInfoCard() {
                     <Label>Số điện thoại</Label>
                     <Input
                       type="text"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
+                      name="phone"
+                      value={formData.phone}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -249,8 +269,8 @@ export default function UserInfoCard() {
                     <Label>Ngày sinh</Label>
                     <Input
                       type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
+                      name="dateOfBirthday"
+                      value={formData.dateOfBirthday}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -258,8 +278,8 @@ export default function UserInfoCard() {
                     <Label>Địa chỉ</Label>
                     <Input
                       type="text"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
+                      name="address"
+                      value={formData.address}
                       onChange={handleInputChange}
                     />
                   </div>

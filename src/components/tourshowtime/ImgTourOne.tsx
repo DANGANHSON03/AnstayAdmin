@@ -1,17 +1,24 @@
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 
 interface TourImage {
-  id?: number;
-  tour_id: number;
-  image_url: string;
-  is_featured: boolean;
+  id: number;
+  tourId: number;
+  imageUrl: string;
+  isFeatured: boolean;
+  featured: boolean;
 }
 
 interface Tour {
   id: number;
   name: string;
+  description: string;
+  price: number;
+  durationDays: number;
+  discountPercent: number;
+  createdAt: string;
+  schedules: any[];
   images: TourImage[];
 }
 
@@ -20,32 +27,20 @@ export default function ImgTourOne() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
+  const [tours, setTours] = useState<Tour[]>([]);
 
-  const [tours] = useState<Tour[]>([
-    {
-      id: 1,
-      name: "Tour Đà Lạt 3N2Đ",
-      images: [
-        {
-          id: 1,
-          tour_id: 1,
-          image_url: "https://example.com/image1.jpg",
-          is_featured: true,
-        },
-        {
-          id: 2,
-          tour_id: 1,
-          image_url: "https://example.com/image2.jpg",
-          is_featured: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Tour Phú Quốc 4N3Đ",
-      images: [],
-    },
-  ]);
+  useEffect(() => {
+    const fetchTours = async () => {
+      try {
+        const response = await fetch("http://localhost:8085/api/tours");
+        const data = await response.json();
+        setTours(Array.isArray(data) ? data : [data]);
+      } catch (error) {
+        console.error("Error fetching tours:", error);
+      }
+    };
+    fetchTours();
+  }, []);
 
   const handleOpenUploadModal = (tourId: number) => {
     setSelectedTourId(tourId);
@@ -89,6 +84,60 @@ export default function ImgTourOne() {
     }
   };
 
+  const handleDeleteImage = async (imageId: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/tour-images/${imageId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Refresh tours data after successful deletion
+        const toursResponse = await fetch("http://localhost:8085/api/tours");
+        const data = await toursResponse.json();
+        setTours(Array.isArray(data) ? data : [data]);
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  };
+
+  const handleToggleFeatured = async (
+    imageId: number,
+    currentFeatured: boolean
+  ) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/tour-images/${imageId}/isFeatured`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isFeatured: !currentFeatured }),
+        }
+      );
+
+      if (response.ok) {
+        // Update state locally instead of fetching from API
+        setTours((prevTours) =>
+          prevTours.map((tour) => ({
+            ...tour,
+            images: tour.images.map((img) =>
+              img.id === imageId
+                ? { ...img, isFeatured: !currentFeatured }
+                : img
+            ),
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
+    }
+  };
+
   return (
     <div className="space-y-8 p-4">
       {tours.map((tour, index) => (
@@ -106,7 +155,7 @@ export default function ImgTourOne() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 <PlusIcon className="w-5 h-5" />
-                <span>Manage Images</span>
+                <span>Thêm ảnh</span>
               </button>
             </div>
           </div>
@@ -123,7 +172,7 @@ export default function ImgTourOne() {
           <Dialog.Panel className="w-full max-w-4xl bg-white rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <Dialog.Title className="text-lg font-medium">
-                Manage Tour Images
+                Thêm ảnh
               </Dialog.Title>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -153,15 +202,18 @@ export default function ImgTourOne() {
                     ?.images.map((image) => (
                       <div key={image.id} className="relative group">
                         <img
-                          src={image.image_url}
+                          src={image.imageUrl}
                           alt={`Tour image ${image.id}`}
                           className="w-full h-40 object-cover rounded-lg"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                           <div className="absolute top-2 right-2 flex gap-2">
                             <button
+                              onClick={() =>
+                                handleToggleFeatured(image.id, image.isFeatured)
+                              }
                               className={`p-1 rounded-full ${
-                                image.is_featured
+                                image.isFeatured
                                   ? "bg-yellow-500"
                                   : "bg-gray-500"
                               } text-white`}
@@ -175,7 +227,10 @@ export default function ImgTourOne() {
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
                             </button>
-                            <button className="p-1 bg-red-500 text-white rounded-full">
+                            <button
+                              onClick={() => handleDeleteImage(image.id)}
+                              className="p-1 bg-red-500 text-white rounded-full"
+                            >
                               <TrashIcon className="w-4 h-4" />
                             </button>
                           </div>
@@ -198,7 +253,7 @@ export default function ImgTourOne() {
                   className="cursor-pointer flex flex-col items-center"
                 >
                   <PlusIcon className="w-8 h-8 text-gray-400" />
-                  <span className="text-gray-500">Add More Images</span>
+                  <span className="text-gray-500">Thêm ảnh từ thư viện</span>
                 </label>
               </div>
 
@@ -235,7 +290,7 @@ export default function ImgTourOne() {
                     onClick={handleImageSubmit}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                   >
-                    Save Changes
+                    Lưu ảnh
                   </button>
                 </div>
               )}

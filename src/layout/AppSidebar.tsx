@@ -30,7 +30,7 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Trang thống kê",
-    path: "/",
+    path: "/home",
   },
   {
     icon: <CalenderIcon />,
@@ -49,6 +49,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Thêm thông tin tour", path: "/tour", pro: false },
       { name: "Thêm ảnh cho tour", path: "/imgtour", pro: false },
+      { name: "Thêm ảnh lịch trình", path: "/schedule", pro: false },
     ],
   },
   {
@@ -290,7 +291,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
+        <Link to="/home">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img

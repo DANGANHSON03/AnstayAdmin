@@ -37,25 +37,26 @@ export default function SignInForm() {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:8085/api/users/login",
-        loginData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axios.get("http://localhost:8085/api/users");
+      const users = response.data;
+
+      const user = users.find(
+        (user: any) =>
+          user.email === loginData.email && user.password === loginData.password
       );
 
-      if (response.data?.role === "ADMIN") {
-        const userData = response.data;
-        localStorage.setItem("userData", JSON.stringify(userData));
-        navigate("/");
+      if (user) {
+        if (user.role === "SUPER_ADMIN" || user.role === "ADMIN") {
+          localStorage.setItem("userData", JSON.stringify(user));
+          navigate("/home");
+        } else {
+          setError("Access denied. Admin privileges required.");
+        }
       } else {
-        setError("Access denied. Admin privileges required.");
+        setError("Invalid email or password");
       }
     } catch (err: any) {
-      setError("Invalid email or password");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,10 +68,10 @@ export default function SignInForm() {
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Sign In
+              Đăng nhập
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign in!
+              Vui lòng nhập email và mật khẩu để đăng nhập!
             </p>
           </div>
           <div>
@@ -90,7 +91,7 @@ export default function SignInForm() {
                 </div>
                 <div>
                   <Label>
-                    Password <span className="text-error-500">*</span>{" "}
+                    Mật Khẩu <span className="text-error-500">*</span>{" "}
                   </Label>
                   <div className="relative">
                     <Input
@@ -116,14 +117,14 @@ export default function SignInForm() {
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
                     <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
+                      Lưu thông tin đăng nhập
                     </span>
                   </div>
                   <Link
                     to="/reset-password"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
-                    Forgot password?
+                    Quên mật khẩu ?
                   </Link>
                 </div>
                 <div>
@@ -133,23 +134,11 @@ export default function SignInForm() {
                     type="submit"
                     disabled={loading}
                   >
-                    {loading ? "Signing in..." : "Sign in"}
+                    {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                   </Button>
                 </div>
               </div>
             </form>
-
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Don&apos;t have an account?{" "}
-                <Link
-                  to="/signup"
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
