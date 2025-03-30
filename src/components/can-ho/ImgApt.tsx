@@ -1,17 +1,36 @@
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 
 interface ApartmentImage {
-  id?: number;
-  apartment_id: number;
-  image_url: string;
-  is_featured: boolean;
+  id: number;
+  apartmentId: number;
+  imageUrl: string;
+  featured: boolean;
+}
+
+interface Owner {
+  id: number;
+  name: string;
+  phone: string | null;
+  email: string;
+  address: string | null;
 }
 
 interface Apartment {
   id: number;
   name: string;
+  location: string;
+  ownerId: number;
+  pricePerDay: number;
+  pricePerMonth: number;
+  discountPercent: number;
+  description: string;
+  maxAdults: number;
+  maxChildren: number;
+  numRooms: number;
+  status: string;
+  owners: Owner[];
   images: ApartmentImage[];
 }
 
@@ -20,44 +39,23 @@ export default function ImgApt() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
+  const [apartments, setApartments] = useState<Apartment[]>([]);
 
-  const [tours, setTours] = useState<Apartment[]>([
-    {
-      id: 1,
-      name: "Căn hộ DaLat Center",
-      images: [
-        {
-          id: 1,
-          apartment_id: 1,
-          image_url: "https://example.com/apartment1.jpg",
-          is_featured: true,
-        },
-        {
-          id: 2,
-          apartment_id: 1,
-          image_url: "https://example.com/apartment2.jpg",
-          is_featured: false,
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Căn hộ Mountain View",
-      images: [],
-    },
-    {
-      id: 3,
-      name: "Căn hộ Lake View",
-      images: [
-        {
-          id: 3,
-          apartment_id: 3,
-          image_url: "https://example.com/apartment3.jpg",
-          is_featured: true,
-        },
-      ],
-    },
-  ]);
+  const fetchApartments = async () => {
+    try {
+      const response = await fetch("http://localhost:8085/api/apartments");
+      if (response.ok) {
+        const data = await response.json();
+        setApartments(data);
+      }
+    } catch (error) {
+      console.error("Error fetching apartments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchApartments();
+  }, []);
 
   const handleOpenUploadModal = (tourId: number) => {
     setSelectedTourId(tourId);
@@ -84,13 +82,16 @@ export default function ImgApt() {
     images.forEach((image) => {
       formData.append("images", image);
     });
-    formData.append("apartment_id", selectedTourId?.toString() || "");
+    formData.append("apartmentId", selectedTourId?.toString() || "");
 
     try {
-      const response = await fetch("/api/apartment-images", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://localhost:8085/api/apartments/images",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       if (response.ok) {
         setImages([]);
         setPreviewUrls([]);
@@ -101,20 +102,43 @@ export default function ImgApt() {
     }
   };
 
+  const handleDeleteImage = async (imageId: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/apartment-images/${imageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        // Refresh the apartments data after successful deletion
+        await fetchApartments();
+      } else {
+        console.error("Failed to delete image:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+    }
+  };
+
   return (
     <div className="space-y-8 p-4">
-      {tours.map((tour, index) => (
-        <div key={tour.id} className="bg-white rounded-lg shadow-sm p-6">
+      {apartments.map((apartment, index) => (
+        <div key={apartment.id} className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              #{index + 1} - {tour.name}
+              #{index + 1} - {apartment.name}
             </h2>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">
-                {tour.images.length} images
+                {apartment.images.length} images
               </span>
               <button
-                onClick={() => handleOpenUploadModal(tour.id)}
+                onClick={() => handleOpenUploadModal(apartment.id)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 <PlusIcon className="w-5 h-5" />
@@ -160,12 +184,12 @@ export default function ImgApt() {
             <div className="space-y-6">
               <div className="grid grid-cols-4 gap-4">
                 {selectedTourId &&
-                  tours
+                  apartments
                     .find((t) => t.id === selectedTourId)
                     ?.images.map((image) => (
                       <div key={image.id} className="relative group">
                         <img
-                          src={image.image_url}
+                          src={image.imageUrl}
                           alt={`Tour image ${image.id}`}
                           className="w-full h-40 object-cover rounded-lg"
                         />
@@ -173,9 +197,7 @@ export default function ImgApt() {
                           <div className="absolute top-2 right-2 flex gap-2">
                             <button
                               className={`p-1 rounded-full ${
-                                image.is_featured
-                                  ? "bg-yellow-500"
-                                  : "bg-gray-500"
+                                image.featured ? "bg-yellow-500" : "bg-gray-500"
                               } text-white`}
                             >
                               <svg
@@ -187,7 +209,10 @@ export default function ImgApt() {
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
                             </button>
-                            <button className="p-1 bg-red-500 text-white rounded-full">
+                            <button
+                              onClick={() => handleDeleteImage(image.id)}
+                              className="p-1 bg-red-500 text-white rounded-full"
+                            >
                               <TrashIcon className="w-4 h-4" />
                             </button>
                           </div>

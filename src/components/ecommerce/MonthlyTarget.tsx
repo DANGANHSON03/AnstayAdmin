@@ -1,31 +1,56 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
 import { HiOutlineHome, HiOutlineOfficeBuilding } from "react-icons/hi";
 
+interface AreaRevenue {
+  totalRevenue: number;
+  revenue: number;
+  period: string;
+  data: null;
+  name: null;
+  type: string;
+  totalOrders: number;
+}
+
 export default function MonthlyTarget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [areaStats, setAreaStats] = useState<AreaRevenue[]>([]);
 
-  const mockStats = {
+  useEffect(() => {
+    fetch("http://localhost:8085/api/statistics/revenue-by-area")
+      .then((res) => res.json())
+      .then((data) => setAreaStats(data))
+      .catch((error) => console.error("Error fetching stats:", error));
+  }, []);
+
+  const stats = {
     hanoi: {
-      hotels: { orders: 150, revenue: 450000000 },
-      apartments: { orders: 89, revenue: 267000000 },
+      tour: areaStats.find(
+        (stat) => stat.period === "HA_NOI" && stat.type === "TOUR"
+      ) || { revenue: 0, totalRevenue: 0, totalOrders: 0 },
+      apartment: areaStats.find(
+        (stat) => stat.period === "HA_NOI" && stat.type === "APARTMENT"
+      ) || { revenue: 0, totalRevenue: 0, totalOrders: 0 },
     },
-    hcm: {
-      hotels: { orders: 200, revenue: 600000000 },
-      apartments: { orders: 120, revenue: 360000000 },
+    halong: {
+      tour: areaStats.find(
+        (stat) => stat.period === "HA_LONG" && stat.type === "TOUR"
+      ) || { revenue: 0, totalRevenue: 0, totalOrders: 0 },
+      apartment: areaStats.find(
+        (stat) => stat.period === "HA_LONG" && stat.type === "APARTMENT"
+      ) || { revenue: 0, totalRevenue: 0, totalOrders: 0 },
     },
   };
 
-  // Tính toán series cho biểu đồ từ dữ liệu mock
   const series = [
-    mockStats.hanoi.hotels.orders,
-    mockStats.hanoi.apartments.orders,
-    mockStats.hcm.hotels.orders,
-    mockStats.hcm.apartments.orders,
+    stats.hanoi.tour.revenue,
+    stats.hanoi.apartment.revenue,
+    stats.halong.tour.revenue,
+    stats.halong.apartment.revenue,
   ];
 
   const options: ApexOptions = {
@@ -74,11 +99,7 @@ export default function MonthlyTarget() {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="p-4">
-        {" "}
-        {/* Reduced from p-5 */}
         <div className="flex justify-between mb-4">
-          {" "}
-          {/* Reduced from mb-6 */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
               Thống Kê Theo Loại Hình
@@ -87,16 +108,10 @@ export default function MonthlyTarget() {
               Chi tiết đơn đặt và doanh thu theo khu vực
             </p>
           </div>
-          {/* ...existing dropdown code... */}
         </div>
         <div className="space-y-4">
-          {" "}
-          {/* Reduced from space-y-6 */}
-          {/* Hà Nội Section */}
           <div>
             <h4 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {" "}
-              {/* Reduced from mb-3 */}
               Khu Vực Hà Nội
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -107,13 +122,13 @@ export default function MonthlyTarget() {
                     Tour
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {mockStats.hanoi.hotels.orders} đơn
+                    {stats.hanoi.tour.totalOrders} đơn
                   </p>
                   <span className="text-sm text-green-600">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(mockStats.hanoi.hotels.revenue)}
+                    }).format(stats.hanoi.tour.revenue)}
                   </span>
                 </div>
               </div>
@@ -125,23 +140,20 @@ export default function MonthlyTarget() {
                     Căn hộ
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {mockStats.hanoi.apartments.orders} đơn
+                    {stats.hanoi.apartment.totalOrders} đơn
                   </p>
                   <span className="text-sm text-green-600">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(mockStats.hanoi.apartments.revenue)}
+                    }).format(stats.hanoi.apartment.revenue)}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          {/* HCM Section */}
           <div>
             <h4 className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {" "}
-              {/* Reduced from mb-3 */}
               Khu Vực Hạ Long
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -152,13 +164,13 @@ export default function MonthlyTarget() {
                     Tour
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {mockStats.hcm.hotels.orders} đơn
+                    {stats.halong.tour.totalOrders} đơn
                   </p>
                   <span className="text-sm text-green-600">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(mockStats.hcm.hotels.revenue)}
+                    }).format(stats.halong.tour.revenue)}
                   </span>
                 </div>
               </div>
@@ -170,13 +182,13 @@ export default function MonthlyTarget() {
                     Căn hộ
                   </p>
                   <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {mockStats.hcm.apartments.orders} đơn
+                    {stats.halong.apartment.totalOrders} đơn
                   </p>
                   <span className="text-sm text-green-600">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(mockStats.hcm.apartments.revenue)}
+                    }).format(stats.halong.apartment.revenue)}
                   </span>
                 </div>
               </div>
@@ -184,14 +196,7 @@ export default function MonthlyTarget() {
           </div>
         </div>
         <div className="relative mt-4">
-          {" "}
-          {/* Reduced from mt-6 */}
-          <Chart
-            options={options}
-            series={series}
-            type="pie"
-            height={250} // Reduced from 330
-          />
+          <Chart options={options} series={series} type="pie" height={250} />
         </div>
       </div>
     </div>

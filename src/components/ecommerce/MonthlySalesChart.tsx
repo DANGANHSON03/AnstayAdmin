@@ -3,11 +3,45 @@ import { ApexOptions } from "apexcharts";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function MonthlySalesChart() {
   const [selectedYear, setSelectedYear] = useState("2024");
+  const [chartData, setChartData] = useState([]);
   const years = ["2025", "2026", "2027"];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8085/api/statistics/monthly-revenue?year=${selectedYear}`
+        );
+        const data = await response.json();
+
+        // Transform data into monthly format
+        const transformedData = data.reduce((acc, item) => {
+          const location = item.name;
+          if (!acc[location]) {
+            acc[location] = new Array(12).fill(0);
+          }
+          const monthIndex = parseInt(item.period.split("-")[1]) - 1;
+          acc[location][monthIndex] = item.data[0];
+          return acc;
+        }, {});
+
+        setChartData(
+          Object.entries(transformedData).map(([name, data]) => ({
+            name,
+            data,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [selectedYear]);
 
   const options: ApexOptions = {
     colors: ["#465fff", "#00E396"],
@@ -30,7 +64,7 @@ export default function MonthlySalesChart() {
     dataLabels: {
       enabled: true,
       formatter: function (val) {
-        return (val / 1000000).toFixed(0) + "M";
+        return (val / 1000000).toFixed(1) + "M";
       },
       style: {
         fontSize: "11px",
@@ -66,7 +100,7 @@ export default function MonthlySalesChart() {
     },
     yaxis: {
       labels: {
-        formatter: (val) => (val / 1000000).toFixed(0) + "M",
+        formatter: (val) => (val / 1000000).toFixed(1) + "M",
       },
       title: {
         text: "Doanh thu (VNĐ)",
@@ -91,19 +125,18 @@ export default function MonthlySalesChart() {
   const series = [
     {
       name: "Hà Nội",
-      data: [
-        45000000, 52000000, 48000000, 51000000, 58000000, 63000000, 65000000,
-        61000000, 57000000, 62000000, 68000000, 72000000,
-      ],
+      data:
+        chartData.find((item) => item.name === "HA_NOI")?.data ||
+        new Array(12).fill(0),
     },
     {
-      name: "Hồ Chí Minh",
-      data: [
-        68000000, 65000000, 62000000, 69000000, 72000000, 75000000, 78000000,
-        76000000, 73000000, 77000000, 82000000, 85000000,
-      ],
+      name: "Hạ Long",
+      data:
+        chartData.find((item) => item.name === "HA_LONG")?.data ||
+        new Array(12).fill(0),
     },
   ];
+
   const [isOpen, setIsOpen] = useState(false);
 
   function toggleDropdown() {
@@ -134,7 +167,7 @@ export default function MonthlySalesChart() {
             </select>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            So sánh doanh thu Hà Nội và TP.HCM
+            So sánh doanh thu Hà Nội và Hạ Long
           </p>
         </div>
 

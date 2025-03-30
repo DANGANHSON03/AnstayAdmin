@@ -35,6 +35,27 @@ interface ValidationErrors {
   numberOfPeople?: string;
 }
 
+interface TourBooking {
+  id: number;
+  userId: number;
+  tourId: number;
+  checkIn: string;
+  totalPrice: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+}
+
+interface User {
+  id: number;
+  fullName: string; // Changed from name to fullName
+  email: string;
+  phone: string;
+}
+
+interface Tour {
+  id: number;
+  name: string;
+}
+
 const statusOptions = [
   { value: "PENDING", label: "Chờ xác nhận" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
@@ -69,9 +90,47 @@ const mockBookings = [
   },
 ] as BookingHistory[];
 
+const fetchBookingById = async (id: number): Promise<TourBooking> => {
+  const response = await fetch(`http://localhost:8085/api/tour-bookings/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch booking");
+  }
+  return response.json();
+};
+
+const updateTourBooking = async (
+  id: number,
+  data: { status: string }
+): Promise<void> => {
+  if (!id) {
+    throw new Error("Booking ID is required");
+  }
+
+  console.log("=== UPDATE BOOKING STATUS API CALL ===");
+  console.log("Booking ID:", id);
+  console.log("New status:", data.status);
+
+  const response = await fetch(
+    `http://localhost:8085/api/tour-bookings/${id}/status?status=${data.status}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("API Error Response:", errorText);
+    throw new Error(`Failed to update booking status: ${errorText}`);
+  }
+
+  console.log("Status update successful!");
+};
+
 export default function HistoryTourOne() {
   console.log("Component CIF render");
-  // Initialize with empty array
   const [users, setUsers] = useState<BookingHistory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,49 +179,57 @@ export default function HistoryTourOne() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
     try {
-      // TODO: Replace with actual API call
-      if (isEditing) {
-        const updatedUsers = users.map((user) =>
-          user.id === newUser.id ? { ...user, ...newUser } : user
-        );
-        setUsers(updatedUsers);
-      } else {
-        const newUsr = {
-          ...newUser,
-          id: users.length + 1,
-          bookingDate: new Date().toISOString(),
-        };
-        setUsers([...users, newUsr as BookingHistory]);
+      setLoading(true);
+      if (!isEditing || !newUser.id) {
+        throw new Error("Invalid booking ID");
       }
 
+      // Only send status update
+      await updateTourBooking(newUser.id, {
+        status: newUser.status as string,
+      });
+
+      // Update local state with new status
+      const updatedUsers = users.map((user) =>
+        user.id === newUser.id ? { ...user, status: newUser.status } : user
+      );
+
+      setUsers(updatedUsers);
       setIsModalOpen(false);
       setIsEditing(false);
-      setNewUser({
-        status: "PENDING",
-      });
+      setNewUser({ status: "PENDING" });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error updating status:", error);
+      alert("Cập nhật trạng thái thất bại: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Cập nhật handleEdit để copy dữ liệu an toàn
-  const handleEdit = (user: BookingHistory) => {
-    setNewUser({
-      ...user,
-    });
-    setIsEditing(true);
-    setIsModalOpen(true);
+  const handleEdit = async (user: BookingHistory) => {
+    try {
+      setLoading(true);
+      console.log("Editing booking with status:", user.status); // Debug log
+
+      // Use the status directly from the booking data instead of fetching again
+      setNewUser({
+        id: user.id,
+        status: user.status, // Use the status from current data
+      });
+
+      setIsEditing(true);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error setting up edit mode:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa lịch sử đặt tour này?")) {
       try {
-        // TODO: Replace with actual API call
         setUsers(users.filter((user) => user.id !== id));
       } catch (error) {
         console.error("Error deleting user:", error);
@@ -178,27 +245,53 @@ export default function HistoryTourOne() {
     }));
   };
 
-  // Replace existing useEffect with this one
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadBookings = async () => {
       try {
         setLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setUsers(mockBookings);
+        const bookingsResponse = await fetch(
+          "http://localhost:8085/api/tour-bookings"
+        );
+        const bookingsData: TourBooking[] = await bookingsResponse.json();
+
+        const enrichedBookings = await Promise.all(
+          bookingsData.map(async (booking) => {
+            const [userResponse, tourResponse] = await Promise.all([
+              fetch(`http://localhost:8085/api/users/${booking.userId}`),
+              fetch(`http://localhost:8085/api/tours/${booking.tourId}`),
+            ]);
+
+            const userData: User = await userResponse.json();
+            const tourData: Tour = await tourResponse.json();
+
+            return {
+              id: booking.id,
+              tourName: tourData.name,
+              customerName: userData.fullName,
+              email: userData.email,
+              phone: userData.phone,
+              bookingDate: new Date().toISOString(),
+              startDate: booking.checkIn,
+              numberOfPeople: 1,
+              totalPrice: booking.totalPrice,
+              status: booking.status,
+            } as BookingHistory;
+          })
+        );
+
+        setUsers(enrichedBookings);
       } catch (error) {
-        console.error("Failed to load users:", error);
+        console.error("Failed to load bookings:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUsers();
+    loadBookings();
   }, []);
 
-  // Xử lý lọc dữ liệu an toàn
   const filteredUsers = React.useMemo(() => {
-    console.log("Filtering users:", users); // Debug log
+    console.log("Filtering users:", users);
     return (
       users?.filter(
         (user) =>
@@ -211,7 +304,6 @@ export default function HistoryTourOne() {
     );
   }, [users, searchQuery]);
 
-  // Fix pagination calculations
   const startIndex = (pagination.current - 1) * pagination.pageSize;
   const endIndex = Math.min(
     startIndex + pagination.pageSize,
@@ -219,7 +311,6 @@ export default function HistoryTourOne() {
   );
   const displayedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  // Fix update total effect
   useEffect(() => {
     setPagination((prev) => ({
       ...prev,
@@ -227,7 +318,6 @@ export default function HistoryTourOne() {
     }));
   }, [filteredUsers.length]);
 
-  // Reset form khi đóng modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
@@ -241,7 +331,6 @@ export default function HistoryTourOne() {
     });
   };
 
-  // Add check for data display
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -254,7 +343,6 @@ export default function HistoryTourOne() {
     return <div>No users found</div>;
   }
 
-  // Sửa lại cách hiển thị table
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-white/[0.05]">
@@ -410,13 +498,14 @@ export default function HistoryTourOne() {
                 <Label>Trạng thái</Label>
                 <Select
                   options={statusOptions}
-                  value={newUser.status}
-                  onChange={(value) =>
+                  value={newUser.status || "PENDING"}
+                  onChange={(value) => {
+                    console.log("Changing status to:", value);
                     setNewUser({
                       ...newUser,
                       status: value as BookingHistory["status"],
-                    })
-                  }
+                    });
+                  }}
                 />
               </div>
               <div className="flex justify-end gap-3 mt-6">

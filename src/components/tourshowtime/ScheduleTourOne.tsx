@@ -1,7 +1,6 @@
 import {
   TrashIcon,
   PlusIcon,
-  PencilIcon,
   EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
@@ -32,6 +31,36 @@ interface Tour {
   schedules: Schedule[];
 }
 
+interface ItineraryDay {
+  id?: number; // Add schedule id
+  day: number;
+  title: string;
+  activities: {
+    time: string;
+    description: string;
+  }[];
+}
+
+interface NewDayForm {
+  dayNumber: number;
+  title: string;
+}
+
+// Update DeleteConfirmation interface
+interface DeleteConfirmation {
+  isOpen: boolean;
+  scheduleId: number | null;
+  detailId: number | null;
+  type: "detail" | "schedule" | null;
+}
+
+interface EditingDetail {
+  scheduleId: number;
+  detailId: number;
+  timeSlot: string;
+  description: string;
+}
+
 export default function ScheduleTourOne() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
@@ -48,9 +77,40 @@ export default function ScheduleTourOne() {
   );
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
-  const [editingDetail, setEditingDetail] = useState<TimeDetail | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDayTitle, setEditingDayTitle] = useState<{
+    dayIndex: number;
+    value: string;
+  } | null>(null);
+  const [isNewDayModalOpen, setIsNewDayModalOpen] = useState(false);
+  const [newDayForm, setNewDayForm] = useState<NewDayForm>({
+    dayNumber: 1,
+    title: "",
+  });
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState<{
+    dayIndex: number;
+    title: string;
+  } | null>(null);
+  // Update initial state
+  const [deleteConfirmation, setDeleteConfirmation] =
+    useState<DeleteConfirmation>({
+      isOpen: false,
+      scheduleId: null,
+      detailId: null,
+      type: null,
+    });
+  const [editingDetail, setEditingDetail] = useState<EditingDetail | null>(
+    null
+  );
+  const [newActivity, setNewActivity] = useState({
+    timeSlot: "",
+    description: "",
+  });
+
+  // Add new state for managing activities per schedule
+  const [newActivities, setNewActivities] = useState<{
+    [key: number]: { timeSlot: string; description: string };
+  }>({});
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -67,67 +127,146 @@ export default function ScheduleTourOne() {
 
   const handleOpenScheduleModal = (tourId: number) => {
     setSelectedTourId(tourId);
+    const tour = tours.find((t) => t.id === tourId);
+
+    if (tour && tour.schedules.length > 0) {
+      const existingItinerary = tour.schedules.map((schedule) => ({
+        id: schedule.id, // Include the schedule id
+        day: schedule.dayNumber,
+        title: schedule.title,
+        activities: schedule.details.map((detail) => ({
+          time: detail.timeSlot,
+          description: detail.description,
+        })),
+      }));
+      setCurrentItinerary(existingItinerary);
+    } else {
+      setCurrentItinerary([]);
+    }
     setIsModalOpen(true);
   };
 
   const handleAddDay = () => {
-    setCurrentItinerary((prev) => [
-      ...prev,
-      {
-        day: prev.length + 1,
-        title: `NGÀY ${prev.length + 1}`,
-        activities: [],
-      },
-    ]);
-  };
-
-  const handleAddActivity = (dayIndex: number) => {
-    setCurrentItinerary((prev) => {
-      const newItinerary = [...prev];
-      newItinerary[dayIndex].activities.push({
-        time: "",
-        description: "",
+    if (selectedTour) {
+      setNewDayForm({
+        dayNumber: currentItinerary.length + 1,
+        title: "",
       });
-      return newItinerary;
-    });
+      setIsNewDayModalOpen(true);
+    }
   };
 
-  const handleActivityChange = (
-    dayIndex: number,
-    activityIndex: number,
-    field: "time" | "description",
-    value: string
-  ) => {
+  const fetchAllTours = async () => {
+    try {
+      const response = await fetch("http://localhost:8085/api/tours");
+      const data = await response.json();
+      setTours(Array.isArray(data) ? data : [data]);
+
+      // Update selectedTour with fresh data
+      if (selectedTour) {
+        const updatedSelectedTour = data.find(
+          (t: Tour) => t.id === selectedTour.id
+        );
+        if (updatedSelectedTour) {
+          setSelectedTour(updatedSelectedTour);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching tours:", error);
+    }
+  };
+
+  const handleNewDaySubmit = async () => {
+    if (!newDayForm.title || !selectedTour) return;
+
+    try {
+      const response = await fetch("http://localhost:8085/api/tour-schedules", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tourId: selectedTour.id,
+          dayNumber: newDayForm.dayNumber,
+          title: newDayForm.title,
+        }),
+      });
+
+      if (response.ok) {
+        const newSchedule = await response.json();
+
+        // Add to currentItinerary
+        setCurrentItinerary((prev) => [
+          ...prev,
+          {
+            day: newSchedule.dayNumber,
+            title: newSchedule.title,
+            activities: [],
+          },
+        ]);
+
+        // Create new schedule object with empty details array
+        const scheduleToAdd = {
+          ...newSchedule,
+          details: [],
+        };
+
+        // Update selectedTour with new schedule
+        const updatedTour = {
+          ...selectedTour,
+          schedules: [...selectedTour.schedules, scheduleToAdd],
+        };
+
+        // Update states
+        setTours((prev) =>
+          prev.map((tour) => (tour.id === selectedTour.id ? updatedTour : tour))
+        );
+        setSelectedTour(updatedTour);
+
+        // Close modal and reset form
+        setIsNewDayModalOpen(false);
+        setNewDayForm({
+          dayNumber: 1,
+          title: "",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding new day schedule:", error);
+    }
+  };
+
+  const handleDayTitleSubmit = (dayIndex: number) => {
+    if (!editingDayTitle || editingDayTitle.value.trim() === "") return;
+
     setCurrentItinerary((prev) => {
       const newItinerary = [...prev];
-      newItinerary[dayIndex].activities[activityIndex][field] = value;
+      newItinerary[dayIndex].title = editingDayTitle.value;
       return newItinerary;
     });
+    setEditingDayTitle(null);
   };
 
   const handleScheduleSubmit = () => {
     if (!selectedTourId || !currentItinerary.length) return;
 
-    const newSchedule: Schedule = {
-      id: Math.random(), // Simulate new ID
-      tourId: selectedTourId,
-      dayNumber: currentItinerary.length,
-      title: `NGÀY ${currentItinerary.length}`,
-      details: currentItinerary.flatMap((day) =>
-        day.activities.map((activity) => ({
-          id: Math.random(), // Simulate new ID
-          timeSlot: activity.time,
-          description: activity.description,
-        }))
-      ),
-    };
-
+    // Update tour schedules, replacing existing ones
     setTours((prev) =>
       prev.map((tour) => {
         if (tour.id === selectedTourId) {
+          const newSchedules = currentItinerary.map((day) => ({
+            id: Math.random(), // You might want to handle IDs differently
+            tourId: selectedTourId,
+            dayNumber: day.day,
+            title: day.title,
+            details: day.activities.map((activity) => ({
+              id: Math.random(), // You might want to handle IDs differently
+              timeSlot: activity.time,
+              description: activity.description,
+            })),
+          }));
           return {
             ...tour,
-            schedules: [...tour.schedules, newSchedule],
+            schedules: newSchedules,
           };
         }
         return tour;
@@ -138,13 +277,14 @@ export default function ScheduleTourOne() {
     setCurrentItinerary([]);
   };
 
-  const handleDeleteSchedule = (scheduleId: number) => {
-    setTours((prev) =>
-      prev.map((tour) => ({
-        ...tour,
-        schedules: tour.schedules.filter((s) => s.id !== scheduleId),
-      }))
-    );
+  // Replace handleDeleteSchedule function
+  const handleDeleteSchedule = async (scheduleId: number) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      scheduleId: scheduleId,
+      detailId: null,
+      type: "schedule",
+    });
   };
 
   const handleViewDetails = (schedule: Schedule) => {
@@ -152,55 +292,280 @@ export default function ScheduleTourOne() {
     setShowDetailsModal(true);
   };
 
-  const handleEditDetail = (detail: TimeDetail) => {
-    setEditingDetail(detail);
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveEdit = () => {
-    if (!editingDetail || !selectedTour) return;
-
-    setTours((prev) =>
-      prev.map((tour) => {
-        if (tour.id === selectedTour.id) {
-          return {
-            ...tour,
-            schedules: tour.schedules.map((schedule) => ({
-              ...schedule,
-              details: schedule.details.map((detail) =>
-                detail.id === editingDetail.id ? editingDetail : detail
-              ),
-            })),
-          };
+  const handleDeleteDetail = async (scheduleId: number, detailId: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/tour-schedule-details/${detailId}`,
+        {
+          method: "DELETE",
         }
-        return tour;
-      })
-    );
+      );
 
-    setIsEditModalOpen(false);
-    setEditingDetail(null);
+      if (response.ok) {
+        if (selectedTour) {
+          const updatedSchedules = selectedTour.schedules.map((schedule) => {
+            if (schedule.id === scheduleId) {
+              return {
+                ...schedule,
+                details: schedule.details.filter(
+                  (detail) => detail.id !== detailId
+                ),
+              };
+            }
+            return schedule;
+          });
+
+          const updatedTour = { ...selectedTour, schedules: updatedSchedules };
+          setSelectedTour(updatedTour);
+          setTours((prev) =>
+            prev.map((tour) =>
+              tour.id === selectedTour.id ? updatedTour : tour
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting detail:", error);
+    }
   };
 
-  const handleDeleteDetail = (detailId: number) => {
+  // Add new function to handle delete confirmation
+  const handleConfirmDelete = async () => {
+    try {
+      if (
+        deleteConfirmation.type === "schedule" &&
+        deleteConfirmation.scheduleId
+      ) {
+        const response = await fetch(
+          `http://localhost:8085/api/tour-schedules/${deleteConfirmation.scheduleId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          // Update UI by removing the deleted schedule
+          setSelectedTour((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              schedules: prev.schedules.filter(
+                (s) => s.id !== deleteConfirmation.scheduleId
+              ),
+            };
+          });
+
+          // Update tours list
+          setTours((prev) =>
+            prev.map((tour) => {
+              if (tour.id === selectedTour?.id) {
+                return {
+                  ...tour,
+                  schedules: tour.schedules.filter(
+                    (s) => s.id !== deleteConfirmation.scheduleId
+                  ),
+                };
+              }
+              return tour;
+            })
+          );
+        }
+      } else if (deleteConfirmation.type === "detail") {
+        await handleDeleteDetail(
+          deleteConfirmation.scheduleId!,
+          deleteConfirmation.detailId!
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+    } finally {
+      setDeleteConfirmation({
+        isOpen: false,
+        scheduleId: null,
+        detailId: null,
+        type: null,
+      });
+    }
+  };
+
+  const handleUpdateDayTitle = async (dayIndex: number, newTitle: string) => {
     if (!selectedTour) return;
 
-    setTours((prev) =>
-      prev.map((tour) => {
-        if (tour.id === selectedTour.id) {
-          return {
-            ...tour,
-            schedules: tour.schedules.map((schedule) => ({
-              ...schedule,
-              details: schedule.details.filter(
-                (detail) => detail.id !== detailId
-              ),
-            })),
-          };
-        }
-        return tour;
-      })
+    const scheduleToUpdate = selectedTour.schedules.find(
+      (s) => s.dayNumber === currentItinerary[dayIndex].day
     );
-    setOpenMenuId(null);
+
+    if (!scheduleToUpdate) {
+      console.error("Schedule not found");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/tour-schedules/${scheduleToUpdate.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...scheduleToUpdate, // Keep all existing data
+            title: newTitle, // Only update the title
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setCurrentItinerary((prev) => {
+          const updated = [...prev];
+          updated[dayIndex].title = newTitle;
+          return updated;
+        });
+
+        setSelectedTour((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            schedules: prev.schedules.map((s) =>
+              s.id === scheduleToUpdate.id ? { ...s, title: newTitle } : s
+            ),
+          };
+        });
+      }
+    } catch (error) {
+      console.error("Error updating title:", error);
+    }
+    setEditingTitle(null);
+  };
+
+  const handleEditDetail = async () => {
+    if (!editingDetail || !selectedTour) return;
+
+    const requestData = {
+      schedule_id: editingDetail.scheduleId,
+      timeSlot: editingDetail.timeSlot, // Changed timeSlot to time_slot
+      description: editingDetail.description,
+    };
+
+    try {
+      const response = await fetch(
+        `http://localhost:8085/api/tour-schedule-details/update/${editingDetail.detailId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      if (response.ok) {
+        // Update UI
+        const updatedSchedules = selectedTour.schedules.map((schedule) => {
+          if (schedule.id === editingDetail.scheduleId) {
+            return {
+              ...schedule,
+              details: schedule.details.map((detail) =>
+                detail.id === editingDetail.detailId
+                  ? {
+                      ...detail,
+                      timeSlot: editingDetail.timeSlot,
+                      description: editingDetail.description,
+                    }
+                  : detail
+              ),
+            };
+          }
+          return schedule;
+        });
+
+        setSelectedTour({
+          ...selectedTour,
+          schedules: updatedSchedules,
+        });
+
+        setEditingDetail(null);
+        setOpenMenuId(null);
+      }
+    } catch (error) {
+      console.error("Error updating detail:", error);
+    }
+  };
+
+  // Replace handleAddActivity function
+  const handleAddActivity = async (scheduleId: number) => {
+    const activity = newActivities[scheduleId];
+    if (!activity) return;
+
+    const requestData = {
+      timeSlot: activity.timeSlot,
+      description: activity.description,
+      schedule_id: scheduleId,
+    };
+
+    try {
+      const response = await fetch(
+        "http://localhost:8085/api/tour-schedule-details",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      if (response.ok) {
+        const savedActivity = await response.json();
+
+        // Update currentItinerary immediately
+        setCurrentItinerary((prev) =>
+          prev.map((day) => {
+            if (day.id === scheduleId) {
+              return {
+                ...day,
+                activities: [
+                  ...day.activities,
+                  {
+                    time: savedActivity.timeSlot,
+                    description: savedActivity.description,
+                  },
+                ],
+              };
+            }
+            return day;
+          })
+        );
+
+        // Reset form for this schedule
+        setNewActivities((prev) => ({
+          ...prev,
+          [scheduleId]: { timeSlot: "", description: "" },
+        }));
+      }
+    } catch (error) {
+      console.error("Error adding activity:", error);
+    }
+  };
+
+  // Add this helper function
+  const formatTimeForInput = (timeSlot: string) => {
+    if (!timeSlot) return { hours: "00", minutes: "00" };
+    const [hours, minutes] = timeSlot.split(":");
+    return { hours: hours || "00", minutes: minutes || "00" };
+  };
+
+  const handleTimeChange = (
+    scheduleId: number,
+    hours: string,
+    minutes: string
+  ) => {
+    const timeSlot = `${hours}:${minutes}`;
+    setNewActivities((prev) => ({
+      ...prev,
+      [scheduleId]: {
+        ...(prev[scheduleId] || {}),
+        timeSlot,
+      },
+    }));
   };
 
   return (
@@ -255,50 +620,113 @@ export default function ScheduleTourOne() {
                       <TrashIcon className="w-5 h-5" />
                     </button>
                   </div>
+
                   <div className="space-y-4">
                     {schedule.details.map((detail) => (
                       <div
                         key={detail.id}
-                        className="flex items-start gap-4 group"
+                        className="flex items-start gap-4 relative"
                       >
-                        <div className="w-24 font-medium">
-                          {detail.timeSlot.substring(0, 5)}
-                        </div>
-                        <div className="flex-1">{detail.description}</div>
-                        <div className="relative">
-                          <button
-                            onClick={() =>
-                              setOpenMenuId(
-                                openMenuId === detail.id ? null : detail.id
-                              )
-                            }
-                            className="p-1 rounded-full hover:bg-gray-100"
-                          >
-                            <EllipsisVerticalIcon className="w-5 h-5 text-gray-500" />
-                          </button>
+                        {editingDetail?.detailId === detail.id ? (
+                          // Edit mode
+                          <>
+                            <input
+                              type="time"
+                              className="w-32 border rounded"
+                              value={editingDetail.timeSlot.substring(0, 5)}
+                              onChange={(e) =>
+                                setEditingDetail((prev) => ({
+                                  ...prev!,
+                                  timeSlot: e.target.value,
+                                }))
+                              }
+                            />
 
-                          {openMenuId === detail.id && (
-                            <div className="absolute right-0 mt-1 w-32 bg-white border rounded-lg shadow-lg py-1 z-10">
+                            <input
+                              type="text"
+                              className="flex-1 border rounded px-2"
+                              value={editingDetail.description}
+                              onChange={(e) =>
+                                setEditingDetail((prev) => ({
+                                  ...prev!,
+                                  description: e.target.value,
+                                }))
+                              }
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleEditDetail}
+                                className="px-2 py-1 bg-green-500 text-white rounded text-sm"
+                              >
+                                Lưu
+                              </button>
                               <button
                                 onClick={() => {
-                                  handleEditDetail(detail);
+                                  setEditingDetail(null);
                                   setOpenMenuId(null);
                                 }}
-                                className="w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50"
+                                className="px-2 py-1 border rounded text-sm"
                               >
-                                <PencilIcon className="w-4 h-4" />
-                                <span>Sửa</span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteDetail(detail.id)}
-                                className="w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 text-red-600"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                                <span>Xóa</span>
+                                Hủy
                               </button>
                             </div>
-                          )}
-                        </div>
+                          </>
+                        ) : (
+                          // View mode
+                          <>
+                            <div className="w-24 font-medium">
+                              {detail.timeSlot.substring(0, 5)}
+                            </div>
+                            <div className="flex-1">{detail.description}</div>
+                            <div className="relative">
+                              <button
+                                onClick={() =>
+                                  setOpenMenuId(
+                                    openMenuId === detail.id ? null : detail.id
+                                  )
+                                }
+                                className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                              >
+                                <EllipsisVerticalIcon className="w-5 h-5" />
+                              </button>
+
+                              {openMenuId === detail.id && (
+                                <div className="absolute right-0 mt-1 w-36 bg-white rounded-md shadow-lg border z-10">
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => {
+                                        setEditingDetail({
+                                          scheduleId: schedule.id,
+                                          detailId: detail.id,
+                                          timeSlot: detail.timeSlot,
+                                          description: detail.description,
+                                        });
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Sửa
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setOpenMenuId(null);
+                                        setDeleteConfirmation({
+                                          isOpen: true,
+                                          scheduleId: schedule.id,
+                                          detailId: detail.id,
+                                          type: "detail",
+                                        });
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                    >
+                                      Xóa
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -321,12 +749,12 @@ export default function ScheduleTourOne() {
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-3xl bg-white rounded-xl p-6">
+          <Dialog.Panel className="w-full max-w-3xl bg-white rounded-xl p-6 max-h-[80vh] flex flex-col">
             <Dialog.Title className="text-lg font-medium mb-4">
               Thêm lịch trình mới
             </Dialog.Title>
 
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto flex-1">
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-medium">Chi tiết lịch trình</h3>
@@ -341,44 +769,189 @@ export default function ScheduleTourOne() {
                 {currentItinerary.map((day, dayIndex) => (
                   <div key={dayIndex} className="mb-6 border p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">{day.title}</h4>
-                      <button
-                        onClick={() => handleAddActivity(dayIndex)}
+                      {editingTitle?.dayIndex === dayIndex ? (
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            className="border rounded px-2 py-1"
+                            value={editingTitle.title}
+                            onChange={(e) =>
+                              setEditingTitle({
+                                dayIndex,
+                                title: e.target.value,
+                              })
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleUpdateDayTitle(
+                                  dayIndex,
+                                  editingTitle.title
+                                );
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={() =>
+                              handleUpdateDayTitle(dayIndex, editingTitle.title)
+                            }
+                            className="px-2 py-1 bg-green-500 text-white rounded"
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            onClick={() => setEditingTitle(null)}
+                            className="px-2 py-1 border rounded"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      ) : (
+                        <h4
+                          className="font-medium cursor-pointer hover:text-blue-600"
+                          onClick={() =>
+                            setEditingTitle({ dayIndex, title: day.title })
+                          }
+                        >
+                          {day.title || `NGÀY ${day.day}`}
+                        </h4>
+                      )}
+                      {/* <button
+                        onClick={() => handleAddActivity(day.id || 0)}
                         className="text-blue-500"
                       >
                         Thêm hoạt động
+                      </button> */}
+                    </div>
+
+                    {/* Update new activity form */}
+                    <div className="flex gap-4 mb-4">
+                      <div className="flex w-32 gap-1">
+                        <select
+                          className="w-16 border rounded px-1 py-1"
+                          value={
+                            formatTimeForInput(
+                              newActivities[day.id || 0]?.timeSlot || ""
+                            ).hours
+                          }
+                          onChange={(e) => {
+                            const minutes = formatTimeForInput(
+                              newActivities[day.id || 0]?.timeSlot || ""
+                            ).minutes;
+                            handleTimeChange(
+                              day.id || 0,
+                              e.target.value,
+                              minutes
+                            );
+                          }}
+                        >
+                          {Array.from({ length: 24 }, (_, i) =>
+                            i.toString().padStart(2, "0")
+                          ).map((hour) => (
+                            <option key={hour} value={hour}>
+                              {hour}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="flex items-center">:</span>
+                        <select
+                          className="w-16 border rounded px-1 py-1"
+                          value={
+                            formatTimeForInput(
+                              newActivities[day.id || 0]?.timeSlot || ""
+                            ).minutes
+                          }
+                          onChange={(e) => {
+                            const hours = formatTimeForInput(
+                              newActivities[day.id || 0]?.timeSlot || ""
+                            ).hours;
+                            handleTimeChange(
+                              day.id || 0,
+                              hours,
+                              e.target.value
+                            );
+                          }}
+                        >
+                          {Array.from({ length: 60 }, (_, i) =>
+                            i.toString().padStart(2, "0")
+                          ).map((minute) => (
+                            <option key={minute} value={minute}>
+                              {minute}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        className="flex-1 border rounded px-2"
+                        placeholder="Mô tả hoạt động"
+                        value={newActivities[day.id || 0]?.description || ""}
+                        onChange={(e) =>
+                          setNewActivities((prev) => ({
+                            ...prev,
+                            [day.id || 0]: {
+                              ...(prev[day.id || 0] || {}),
+                              description: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                      <button
+                        onClick={() => {
+                          if (day.id) {
+                            handleAddActivity(day.id);
+                          }
+                        }}
+                        className="px-3 py-1 bg-green-500 text-white rounded"
+                      >
+                        Thêm
                       </button>
                     </div>
 
                     {day.activities.map((activity, activityIndex) => (
                       <div key={activityIndex} className="flex gap-4 mb-2">
-                        <input
-                          type="time"
-                          className="w-32 border rounded"
-                          value={activity.time}
-                          onChange={(e) =>
-                            handleActivityChange(
-                              dayIndex,
-                              activityIndex,
-                              "time",
-                              e.target.value
-                            )
-                          }
-                        />
-                        <input
-                          type="text"
-                          className="flex-1 border rounded px-2"
-                          placeholder="Mô tả hoạt động"
-                          value={activity.description}
-                          onChange={(e) =>
-                            handleActivityChange(
-                              dayIndex,
-                              activityIndex,
-                              "description",
-                              e.target.value
-                            )
-                          }
-                        />
+                        {activity.time ? (
+                          // Read-only view for existing activities
+                          <div className="w-32 text-gray-600">
+                            {activity.time}
+                          </div>
+                        ) : (
+                          // Input for new activities
+                          <input
+                            type="time"
+                            className="w-32 border rounded"
+                            value={activity.time}
+                            onChange={(e) =>
+                              handleActivityChange(
+                                dayIndex,
+                                activityIndex,
+                                "time",
+                                e.target.value
+                              )
+                            }
+                          />
+                        )}
+                        {activity.description ? (
+                          // Read-only view for existing activities
+                          <div className="flex-1 text-gray-600">
+                            {activity.description}
+                          </div>
+                        ) : (
+                          // Input for new activities
+                          <input
+                            type="text"
+                            className="flex-1 border rounded px-2"
+                            placeholder="Mô tả hoạt động"
+                            value={activity.description}
+                            onChange={(e) =>
+                              handleActivityChange(
+                                dayIndex,
+                                activityIndex,
+                                "description",
+                                e.target.value
+                              )
+                            }
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -404,71 +977,113 @@ export default function ScheduleTourOne() {
         </div>
       </Dialog>
 
-      {/* Thêm modal sửa thông tin */}
+      {/* Add this new dialog before the closing div */}
       <Dialog
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        open={isNewDayModalOpen}
+        onClose={() => setIsNewDayModalOpen(false)}
         className="relative z-50"
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md bg-white rounded-xl p-6">
+          <Dialog.Panel className="w-full max-w-md bg-white rounded-xl p-6 max-h-[80vh] flex flex-col">
             <Dialog.Title className="text-lg font-medium mb-4">
-              Sửa thông tin chi tiết
+              Thêm ngày mới
             </Dialog.Title>
 
-            {editingDetail && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Thời gian
-                  </label>
-                  <input
-                    type="time"
-                    className="w-full border rounded-md p-2"
-                    value={editingDetail.timeSlot.substring(0, 5)}
-                    onChange={(e) =>
-                      setEditingDetail({
-                        ...editingDetail,
-                        timeSlot: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mô tả
-                  </label>
-                  <textarea
-                    className="w-full border rounded-md p-2"
-                    rows={3}
-                    value={editingDetail.description}
-                    onChange={(e) =>
-                      setEditingDetail({
-                        ...editingDetail,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    onClick={handleSaveEdit}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                  >
-                    Lưu
-                  </button>
-                </div>
+            <div className="space-y-4 overflow-y-auto flex-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ngày thứ
+                </label>
+                <input
+                  type="number"
+                  className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
+                  value={newDayForm.dayNumber}
+                  readOnly
+                />
               </div>
-            )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tiêu đề
+                </label>
+                <input
+                  type="text"
+                  className="w-full border rounded-md p-2"
+                  value={newDayForm.title}
+                  onChange={(e) =>
+                    setNewDayForm((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  onClick={() => setIsNewDayModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleNewDaySubmit}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Thêm
+                </button>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Update delete confirmation dialog */}
+      <Dialog
+        open={deleteConfirmation.isOpen}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            scheduleId: null,
+            detailId: null,
+            type: null,
+          })
+        }
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-lg p-4 max-w-sm w-full">
+            <Dialog.Title className="text-lg font-medium mb-4">
+              Xác nhận xóa
+            </Dialog.Title>
+            <p className="mb-4">
+              {deleteConfirmation.type === "schedule"
+                ? "Bạn có chắc chắn muốn xóa lịch trình này?"
+                : "Bạn có chắc chắn muốn xóa chi tiết này?"}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() =>
+                  setDeleteConfirmation({
+                    isOpen: false,
+                    scheduleId: null,
+                    detailId: null,
+                    type: null,
+                  })
+                }
+                className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Xóa
+              </button>
+            </div>
           </Dialog.Panel>
         </div>
       </Dialog>

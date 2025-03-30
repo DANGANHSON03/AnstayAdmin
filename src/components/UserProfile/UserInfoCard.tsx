@@ -16,7 +16,8 @@ export default function UserInfoCard() {
     avatar: "",
     role: "",
     verified: false,
-    dateOfBirthday: "",
+    dob: "",
+    gender: "MALE",
   });
 
   const [formData, setFormData] = useState({
@@ -24,7 +25,8 @@ export default function UserInfoCard() {
     email: "",
     phone: "",
     address: "",
-    dateOfBirthday: "",
+    dob: "",
+    gender: "MALE",
   });
 
   const formatDate = (dateString) => {
@@ -66,7 +68,8 @@ export default function UserInfoCard() {
             email: response.data.email || "",
             phone: response.data.phone || "",
             address: response.data.address || "",
-            dateOfBirthday: response.data.dateOfBirthday || "",
+            dob: response.data.dob || "",
+            gender: response.data.gender || "MALE",
           });
         }
       } catch (error) {
@@ -181,7 +184,7 @@ export default function UserInfoCard() {
                 Ngày sinh
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                {formatDate(userData.dateOfBirthday)}
+                {formatDate(userData.dob)}
               </p>
             </div>
             <div>
@@ -190,6 +193,14 @@ export default function UserInfoCard() {
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                 {userData.address}
+              </p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Giới tính
+              </p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                {userData.gender === "MALE" ? "Nam" : "Nữ"}
               </p>
             </div>
           </div>
@@ -269,8 +280,8 @@ export default function UserInfoCard() {
                     <Label>Ngày sinh</Label>
                     <Input
                       type="date"
-                      name="dateOfBirthday"
-                      value={formData.dateOfBirthday}
+                      name="dob"
+                      value={formData.dob}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -282,6 +293,18 @@ export default function UserInfoCard() {
                       value={formData.address}
                       onChange={handleInputChange}
                     />
+                  </div>
+                  <div className="col-span-2 lg:col-span-1">
+                    <Label>Giới tính</Label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-800 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                    </select>
                   </div>
                 </div>
               </div>

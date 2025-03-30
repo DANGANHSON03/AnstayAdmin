@@ -16,32 +16,27 @@ import Select from "../form/Select";
 import { Pagination } from "antd";
 
 // Update interfaces for booking history
-interface Booking {
-  id: number;
+interface Booking extends ApiBooking {
   apartmentName: string;
   customerName: string;
   email: string;
   phone: string;
-  checkIn: string;
-  checkOut: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
-  totalPrice: number;
   createdAt: string;
+  userId: number; // Add these fields
+  apartmentId: number; // to track IDs
 }
 
 interface ValidationErrors {
-  customerName?: string;
-  email?: string;
-  phone?: string;
   checkIn?: string;
   checkOut?: string;
 }
+
+type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 
 const statusOptions = [
   { value: "PENDING", label: "Chờ xác nhận" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
   { value: "CANCELLED", label: "Đã hủy" },
-  { value: "COMPLETED", label: "Hoàn thành" },
 ];
 
 // Mock data for bookings
@@ -72,6 +67,98 @@ const mockBookings = [
   },
 ] as Booking[];
 
+// Update interfaces
+interface ApiBooking {
+  id: number;
+  userId: number;
+  apartmentId: number;
+  checkIn: string;
+  checkOut: string;
+  totalPrice: number;
+  status: BookingStatus;
+}
+
+interface User {
+  id: number;
+  fullName: string; // Changed from name to fullName
+  email: string;
+  phone: string;
+}
+
+interface Apartment {
+  id: number;
+  name: string;
+  // Add other apartment fields as needed
+}
+
+// Add API fetch functions
+const fetchBookings = async (): Promise<ApiBooking[]> => {
+  const response = await fetch("http://localhost:8085/api/apartment-bookings");
+  return response.json();
+};
+
+const fetchUser = async (id: number): Promise<User> => {
+  const response = await fetch(`http://localhost:8085/api/users/${id}`);
+  return response.json();
+};
+
+const fetchApartment = async (id: number): Promise<Apartment> => {
+  const response = await fetch(`http://localhost:8085/api/apartments/${id}`);
+  return response.json();
+};
+
+const fetchBookingById = async (id: number): Promise<ApiBooking> => {
+  const response = await fetch(
+    `http://localhost:8085/api/apartment-bookings/${id}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch booking");
+  }
+  return response.json();
+};
+
+const updateBooking = async (
+  id: number,
+  data: Partial<ApiBooking>
+): Promise<void> => {
+  if (!id) {
+    throw new Error("Booking ID is required");
+  }
+
+  // First fetch existing booking data
+  const existingBooking = await fetchBookingById(id);
+
+  // Merge existing data with only the status update
+  const apiData = {
+    ...existingBooking,
+    status: data.status,
+  };
+
+  console.log("=== UPDATE BOOKING API CALL ===");
+  console.log("Existing booking data:", existingBooking);
+  console.log("New status:", data.status);
+  console.log("Final update data:", apiData);
+
+  const response = await fetch(
+    `http://localhost:8085/api/apartment-bookings/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(apiData),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("API Error Response:", errorText);
+    throw new Error(`Failed to update booking: ${errorText}`);
+  }
+
+  console.log("Update successful!");
+};
+
 export default function HistoryAptOne() {
   console.log("Component CIF render");
   // Initialize with empty array
@@ -94,20 +181,6 @@ export default function HistoryAptOne() {
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    if (!newBooking.customerName?.trim()) {
-      newErrors.customerName = "Tên khách hàng là bắt buộc";
-    }
-
-    if (!newBooking.email?.trim()) {
-      newErrors.email = "Email là bắt buộc";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newBooking.email)) {
-      newErrors.email = "Email không hợp lệ";
-    }
-
-    if (!newBooking.phone?.trim()) {
-      newErrors.phone = "Số điện thoại là bắt buộc";
-    }
-
     if (!newBooking.checkIn?.trim()) {
       newErrors.checkIn = "Ngày check-in là bắt buộc";
     }
@@ -123,43 +196,67 @@ export default function HistoryAptOne() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
     try {
-      // TODO: Replace with actual API call
-      if (isEditing) {
-        const updatedBookings = bookings.map((booking) =>
-          booking.id === newBooking.id ? { ...booking, ...newBooking } : booking
-        );
-        setBookings(updatedBookings);
-      } else {
-        const newBkng = {
-          ...newBooking,
-          id: bookings.length + 1,
-          createdAt: new Date().toISOString(),
-        };
-        setBookings([...bookings, newBkng as Booking]);
+      setLoading(true);
+      if (!isEditing || !newBooking.id) {
+        throw new Error("Invalid booking ID");
       }
 
+      // Only send status update
+      const apiUpdateData = {
+        id: newBooking.id,
+        status: newBooking.status,
+      };
+
+      console.log("Sending status update:", apiUpdateData);
+      await updateBooking(newBooking.id, apiUpdateData);
+
+      // Update local state with new status only
+      const updatedBookings = bookings.map((booking) =>
+        booking.id === newBooking.id
+          ? { ...booking, status: apiUpdateData.status }
+          : booking
+      );
+
+      setBookings(updatedBookings);
       setIsModalOpen(false);
       setIsEditing(false);
-      setNewBooking({
-        status: "PENDING",
-      });
+      setNewBooking({ status: "PENDING" });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error details:", error);
+      alert("Cập nhật thất bại: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Cập nhật handleEdit để copy dữ liệu an toàn
-  const handleEdit = (booking: Booking) => {
-    setNewBooking({
-      ...booking,
-    });
-    setIsEditing(true);
-    setIsModalOpen(true);
+  const handleEdit = async (booking: Booking) => {
+    try {
+      setLoading(true);
+      console.log("Fetching booking:", booking.id);
+
+      // Fetch current booking data directly from API
+      const currentBooking = await fetchBookingById(booking.id);
+      console.log("Fetched booking data:", currentBooking);
+
+      // Set booking data immediately
+      setNewBooking({
+        id: currentBooking.id,
+        userId: currentBooking.userId,
+        apartmentId: currentBooking.apartmentId,
+        checkIn: currentBooking.checkIn,
+        checkOut: currentBooking.checkOut,
+        totalPrice: currentBooking.totalPrice,
+        status: currentBooking.status,
+      });
+
+      setIsEditing(true);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -186,9 +283,32 @@ export default function HistoryAptOne() {
     const loadBookings = async () => {
       try {
         setLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setBookings(mockBookings);
+        const apiBookings = await fetchBookings();
+
+        // Fetch user and apartment data for each booking
+        const fullBookings = await Promise.all(
+          apiBookings.map(async (booking) => {
+            const [user, apartment] = await Promise.all([
+              fetchUser(booking.userId),
+              fetchApartment(booking.apartmentId),
+            ]);
+
+            return {
+              id: booking.id,
+              apartmentName: apartment.name,
+              customerName: user.fullName, // Changed from name to fullName
+              email: user.email,
+              phone: user.phone,
+              checkIn: booking.checkIn,
+              checkOut: booking.checkOut,
+              status: booking.status,
+              totalPrice: booking.totalPrice,
+              createdAt: new Date().toISOString(), // If createdAt is not in API response
+            } as Booking;
+          })
+        );
+
+        setBookings(fullBookings);
       } catch (error) {
         console.error("Failed to load bookings:", error);
       } finally {
@@ -330,8 +450,6 @@ export default function HistoryAptOne() {
                         ? "success"
                         : booking.status === "CANCELLED"
                         ? "destructive"
-                        : booking.status === "COMPLETED"
-                        ? "default"
                         : "warning"
                     }
                   >
@@ -381,56 +499,6 @@ export default function HistoryAptOne() {
               {isEditing ? "Chỉnh sửa đơn đặt" : "Thêm đơn đặt mới"}
             </Dialog.Title>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="customerName">Tên khách hàng*</Label>
-                <Input
-                  type="text"
-                  id="customerName"
-                  value={newBooking.customerName || ""}
-                  onChange={(e) =>
-                    setNewBooking({
-                      ...newBooking,
-                      customerName: e.target.value,
-                    })
-                  }
-                />
-                {errors.customerName && (
-                  <span className="text-red-500 text-sm">
-                    {errors.customerName}
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email*</Label>
-                <Input
-                  type="email"
-                  id="email"
-                  value={newBooking.email || ""}
-                  onChange={(e) =>
-                    setNewBooking({ ...newBooking, email: e.target.value })
-                  }
-                />
-                {errors.email && (
-                  <span className="text-red-500 text-sm">{errors.email}</span>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Số điện thoại*</Label>
-                <Input
-                  type="tel"
-                  id="phone"
-                  value={newBooking.phone || ""}
-                  onChange={(e) =>
-                    setNewBooking({ ...newBooking, phone: e.target.value })
-                  }
-                />
-                {errors.phone && (
-                  <span className="text-red-500 text-sm">{errors.phone}</span>
-                )}
-              </div>
-
               <div>
                 <Label htmlFor="checkIn">Ngày check-in*</Label>
                 <Input
@@ -482,13 +550,15 @@ export default function HistoryAptOne() {
                 <Label>Trạng thái</Label>
                 <Select
                   options={statusOptions}
-                  value={newBooking.status}
-                  onChange={(value) =>
+                  value={newBooking.status || "PENDING"}
+                  defaultValue="PENDING"
+                  onChange={(value) => {
+                    console.log("Changing status to:", value);
                     setNewBooking({
                       ...newBooking,
-                      status: value as Booking["status"],
-                    })
-                  }
+                      status: value as BookingStatus,
+                    });
+                  }}
                 />
               </div>
               <div className="flex justify-end gap-3 mt-6">

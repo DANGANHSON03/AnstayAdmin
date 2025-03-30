@@ -172,7 +172,7 @@ export default function ImgTourOne() {
           <Dialog.Panel className="w-full max-w-4xl bg-white rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <Dialog.Title className="text-lg font-medium">
-                Thêm ảnh
+                Thêm ảnh và thông tin
               </Dialog.Title>
               <button
                 onClick={() => setIsModalOpen(false)}

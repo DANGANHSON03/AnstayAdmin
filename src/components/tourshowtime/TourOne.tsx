@@ -26,6 +26,7 @@ interface Tour {
   createdAt: string;
   schedules: any[];
   images: any[];
+  area: "HA_NOI" | "HA_LONG"; // Updated enum values
 }
 
 interface ValidationErrors {
@@ -34,6 +35,7 @@ interface ValidationErrors {
   price?: string;
   durationDays?: string;
   discountPercent?: string;
+  area?: string;
 }
 
 export default function TourOne() {
@@ -49,7 +51,13 @@ export default function TourOne() {
     price: 0,
     durationDays: 1,
     discountPercent: 0,
+    area: "HA_NOI", // Default value
   });
+
+  const areaOptions = [
+    { value: "HA_NOI", label: "Hà Nội" },
+    { value: "HA_LONG", label: "Hạ Long" },
+  ];
 
   const [pagination, setPagination] = useState({
     current: 1,
@@ -115,6 +123,10 @@ export default function TourOne() {
       newErrors.discountPercent = "Phần trăm giảm giá phải từ 0 đến 100";
     }
 
+    if (!newTour.area) {
+      newErrors.area = "Vui lòng chọn khu vực";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -160,6 +172,7 @@ export default function TourOne() {
         price: 0,
         durationDays: 1,
         discountPercent: 0,
+        area: "HA_NOI", // Default value
       });
       fetchTours();
     } catch (error) {
@@ -255,6 +268,12 @@ export default function TourOne() {
                   </TableCell>
                   <TableCell
                     isHeader
+                    className="w-32 px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  >
+                    Khu vực
+                  </TableCell>
+                  <TableCell
+                    isHeader
                     className="w-40 px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                   >
                     Thao tác
@@ -265,13 +284,13 @@ export default function TourOne() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
+                    <TableCell colSpan={8} className="text-center py-4">
                       Đang tải dữ liệu...
                     </TableCell>
                   </TableRow>
                 ) : filteredTours.length === 0 ? ( // Changed from tours to filteredTours
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
+                    <TableCell colSpan={8} className="text-center py-4">
                       Không có dữ liệu tour
                     </TableCell>
                   </TableRow>
@@ -299,6 +318,10 @@ export default function TourOne() {
                         </TableCell>
                         <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                           {dayjs(tour.createdAt).format("DD/MM/YYYY")}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                          {areaOptions.find((opt) => opt.value === tour.area)
+                            ?.label || tour.area}
                         </TableCell>
                         <TableCell className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -457,6 +480,39 @@ export default function TourOne() {
                   {errors.discountPercent && (
                     <span className="text-red-500 text-sm mt-1">
                       {errors.discountPercent}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="area">Khu vực*</Label>
+                  <AntSelect
+                    id="area"
+                    value={newTour.area}
+                    onChange={(value) => {
+                      console.log("Before update - Current state:", newTour);
+                      console.log("Selected value:", value);
+                      console.log("Value type:", typeof value);
+
+                      setNewTour((prev) => {
+                        const updated = {
+                          ...prev,
+                          area: value as "HA_NOI" | "HA_LONG",
+                        };
+                        console.log("After update - New state:", updated);
+                        return updated;
+                      });
+                    }}
+                    options={areaOptions}
+                    className="w-full"
+                    style={{ height: "40px" }}
+                    onDropdownVisibleChange={(open) => {
+                      console.log("Dropdown visible:", open);
+                      console.log("Current options:", areaOptions);
+                    }}
+                  />
+                  {errors.area && (
+                    <span className="text-red-500 text-sm mt-1">
+                      {errors.area}
                     </span>
                   )}
                 </div>

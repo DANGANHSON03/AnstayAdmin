@@ -23,7 +23,8 @@ interface User {
   password?: string; // Optional in UI since we don't always need it
   avatar?: string;
   address?: string;
-  status: "ACTIVE" | "INACTIVE" | "BANNED";
+  gender: "MALE" | "FEMALE" | "OTHER";
+  dob: string;
   createdAt: string;
 }
 
@@ -35,36 +36,13 @@ interface ValidationErrors {
   address?: string;
 }
 
-const statusOptions = [
-  { value: "ACTIVE", label: "Đang hoạt động" },
-  { value: "INACTIVE", label: "Không hoạt động" },
-  { value: "BANNED", label: "Đã khóa" },
+const genderOptions = [
+  { value: "MALE", label: "Nam" },
+  { value: "FEMALE", label: "Nữ" },
+  { value: "OTHER", label: "Khác" },
 ];
 
-// Add mock data before component
-const mockUsers = [
-  {
-    id: 1,
-    fullName: "Nguyễn Văn An",
-    email: "annguyen@gmail.com",
-    phone: "0912345678",
-    address: "123 Đường ABC, Quận 1, TP.HCM",
-    status: "ACTIVE",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    fullName: "Trần Thị Bình",
-    email: "binhtt@gmail.com",
-    phone: "0923456789",
-    address: "456 Đường XYZ, Quận 2, TP.HCM",
-    status: "ACTIVE",
-    createdAt: new Date().toISOString(),
-  },
-] as User[];
-
 export default function CIF() {
-  console.log("Component CIF render");
   // Initialize with empty array
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,12 +51,13 @@ export default function CIF() {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
   const [newUser, setNewUser] = useState<Partial<User>>({
-    status: "ACTIVE",
     fullName: "",
     email: "",
     phone: "",
     address: "",
     avatar: "",
+    gender: "MALE",
+    dob: "",
   });
 
   const [pagination, setPagination] = useState({
@@ -86,6 +65,12 @@ export default function CIF() {
     pageSize: 10,
     total: 0,
   });
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+
+  // Add this new state to store original user data
+  const [originalUser, setOriginalUser] = useState<Partial<User>>({});
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
@@ -104,65 +89,105 @@ export default function CIF() {
       newErrors.phone = "Số điện thoại là bắt buộc";
     }
 
-    if (!isEditing && !newUser.password?.trim()) {
-      newErrors.password = "Mật khẩu là bắt buộc cho người dùng mới";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
-      // TODO: Replace with actual API call
-      if (isEditing) {
-        const updatedUsers = users.map((user) =>
-          user.id === newUser.id ? { ...user, ...newUser } : user
-        );
-        setUsers(updatedUsers);
-      } else {
-        const newUsr = {
-          ...newUser,
-          id: users.length + 1,
-          createdAt: new Date().toISOString(),
-        };
-        setUsers([...users, newUsr as User]);
-      }
+      setLoading(true);
+
+      // Create base payload with all existing user data first
+      const updatePayload = {
+        ...originalUser, // Keep all original data including password
+        ...newUser, // Override with new values
+        id: newUser.id,
+        password: originalUser.password, // Ensure password is kept from original
+      };
+
+      // Remove undefined or null values
+      Object.keys(updatePayload).forEach(
+        (key) => updatePayload[key] === undefined && delete updatePayload[key]
+      );
+
+      // Log the payload being sent
+      console.log("Update Payload:", JSON.stringify(updatePayload, null, 2));
+
+      const response = await fetch(
+        `http://localhost:8085/api/users/update/${newUser.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatePayload),
+        }
+      );
+
+      if (!response.ok) throw new Error("Update failed");
+
+      const response2 = await fetch(
+        "http://localhost:8085/api/users/by-role?role=USER"
+      );
+      const data = await response2.json();
+      setUsers(data);
 
       setIsModalOpen(false);
       setIsEditing(false);
-      setNewUser({
-        status: "ACTIVE",
-      });
+      setNewUser({});
+      setOriginalUser({});
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   // Cập nhật handleEdit để copy dữ liệu an toàn
   const handleEdit = (user: User) => {
-    setNewUser({
+    // Format the date to YYYY-MM-DD for input type="date"
+    const formattedDob = new Date(user.dob).toISOString().split("T")[0];
+    const userData = {
       ...user,
-      password: undefined, // Không copy password khi edit
-    });
+      dob: formattedDob,
+      password: undefined,
+    };
+    setOriginalUser(userData);
+    setNewUser(userData);
     setIsEditing(true);
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
-      try {
-        // TODO: Replace with actual API call
-        setUsers(users.filter((user) => user.id !== id));
-      } catch (error) {
-        console.error("Error deleting user:", error);
-      }
+    setUserToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://localhost:8085/api/users/delete/${userToDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) throw new Error("Delete failed");
+
+      const response2 = await fetch("http://localhost:8085/api/users");
+      const data = await response2.json();
+      setUsers(data);
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,9 +204,14 @@ export default function CIF() {
     const loadUsers = async () => {
       try {
         setLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setUsers(mockUsers);
+        const response = await fetch(
+          "http://localhost:8085/api/users/by-role?role=USER"
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setUsers(data);
       } catch (error) {
         console.error("Failed to load users:", error);
       } finally {
@@ -194,7 +224,6 @@ export default function CIF() {
 
   // Xử lý lọc dữ liệu an toàn
   const filteredUsers = React.useMemo(() => {
-    console.log("Filtering users:", users); // Debug log
     return (
       users?.filter(
         (user) =>
@@ -226,13 +255,15 @@ export default function CIF() {
     setIsModalOpen(false);
     setIsEditing(false);
     setErrors({});
+    setOriginalUser({});
     setNewUser({
-      status: "ACTIVE",
       fullName: "",
       email: "",
       phone: "",
       address: "",
       avatar: "",
+      gender: "MALE",
+      dob: "",
     });
   };
 
@@ -263,13 +294,6 @@ export default function CIF() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>Thêm người dùng</span>
-          </button>
         </div>
       </div>
 
@@ -293,7 +317,10 @@ export default function CIF() {
                 Địa chỉ
               </th>
               <th scope="col" className="px-6 py-3">
-                Trạng thái
+                Giới tính
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Ngày sinh
               </th>
               <th scope="col" className="px-6 py-3">
                 Thao tác
@@ -325,20 +352,11 @@ export default function CIF() {
                   <td className="px-6 py-4">{user.phone}</td>
                   <td className="px-6 py-4">{user.address || "-"}</td>
                   <td className="px-6 py-4">
-                    <Badge
-                      variant={
-                        user.status === "ACTIVE"
-                          ? "success"
-                          : user.status === "BANNED"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {
-                        statusOptions.find((s) => s.value === user.status)
-                          ?.label
-                      }
-                    </Badge>
+                    {genderOptions.find((g) => g.value === user.gender)
+                      ?.label || "-"}
+                  </td>
+                  <td className="px-6 py-4">
+                    {new Date(user.dob).toLocaleDateString("vi-VN")}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -367,14 +385,14 @@ export default function CIF() {
           current={pagination.current}
           pageSize={pagination.pageSize}
           total={filteredUsers.length}
+          onChange={handlePaginationChange}
           showTotal={(total, range) =>
             `${range[0]}-${range[1]} trên ${total} người dùng`
           }
-          onChange={handlePaginationChange}
-          onShowSizeChange={handlePaginationChange}
-          showSizeChanger
           defaultPageSize={10}
           pageSizeOptions={["10", "20", "50"]}
+          showSizeChanger
+          onShowSizeChange={handlePaginationChange}
         />
       </div>
       <Dialog
@@ -386,7 +404,7 @@ export default function CIF() {
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="mx-auto max-w-md w-full rounded-lg bg-white p-6">
             <Dialog.Title className="text-lg font-medium mb-4">
-              {isEditing ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
+              Chỉnh sửa người dùng
             </Dialog.Title>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -436,25 +454,6 @@ export default function CIF() {
                 )}
               </div>
 
-              {!isEditing && (
-                <div>
-                  <Label htmlFor="password">Mật khẩu*</Label>
-                  <Input
-                    type="password"
-                    id="password"
-                    value={newUser.password || ""}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, password: e.target.value })
-                    }
-                  />
-                  {errors.password && (
-                    <span className="text-red-500 text-sm">
-                      {errors.password}
-                    </span>
-                  )}
-                </div>
-              )}
-
               <div>
                 <Label htmlFor="address">Địa chỉ</Label>
                 <Input
@@ -480,15 +479,29 @@ export default function CIF() {
               </div>
 
               <div>
-                <Label>Trạng thái</Label>
+                <Label htmlFor="gender">Giới tính</Label>
                 <Select
-                  options={statusOptions}
-                  value={newUser.status}
+                  options={genderOptions}
+                  value={newUser.gender || "MALE"}
+                  defaultValue={newUser.gender || "MALE"}
                   onChange={(value) =>
-                    setNewUser({ ...newUser, status: value as User["status"] })
+                    setNewUser({ ...newUser, gender: value as User["gender"] })
                   }
                 />
               </div>
+
+              <div>
+                <Label htmlFor="dob">Ngày sinh</Label>
+                <Input
+                  type="date"
+                  id="dob"
+                  value={newUser.dob || ""}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, dob: e.target.value })
+                  }
+                />
+              </div>
+
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
@@ -501,10 +514,44 @@ export default function CIF() {
                   type="submit"
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
-                  {isEditing ? "Cập nhật" : "Thêm mới"}
+                  Cập nhật
                 </button>
               </div>
             </form>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white p-6">
+            <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
+              Xác nhận xóa
+            </Dialog.Title>
+            <p className="text-sm text-gray-500 mb-4">
+              Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể
+              hoàn tác.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                className="px-4 py-2 text-gray-500 hover:text-gray-700"
+                onClick={() => setIsDeleteModalOpen(false)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
           </Dialog.Panel>
         </div>
       </Dialog>
