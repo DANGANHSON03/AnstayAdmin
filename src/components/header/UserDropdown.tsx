@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link } from "react-router";
+import { useNavigate } from "react-router-dom";
+
 export default function UserDropdown() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [userData, setUserData] = useState({
     id: "",
@@ -52,6 +54,14 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userData");
+    navigate("/");
+    window.location.reload(); // Force reload to clear any cached states
+  };
+
   return (
     <div className="relative">
       <button
@@ -122,7 +132,7 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Edit profile
+              Sửa thông tin cá nhân
             </DropdownItem>
           </li>
           <li>
@@ -147,7 +157,7 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Account settings
+              Cài đặt tài khoản
             </DropdownItem>
           </li>
           <li>
@@ -172,12 +182,12 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Support
+              Hỗ Trợ
             </DropdownItem>
           </li>
         </ul>
-        <Link
-          to="/"
+        <button
+          onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg
@@ -195,8 +205,8 @@ export default function UserDropdown() {
               fill=""
             />
           </svg>
-          Sign out
-        </Link>
+          Đăng Xuất
+        </button>
       </Dropdown>
     </div>
   );
