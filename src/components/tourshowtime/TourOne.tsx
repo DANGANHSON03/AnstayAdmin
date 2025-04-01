@@ -27,6 +27,8 @@ interface Tour {
   schedules: any[];
   images: any[];
   area: "HA_NOI" | "HA_LONG"; // Updated enum values
+  transportation: string; // New field
+  hotel: string; // New field
 }
 
 interface ValidationErrors {
@@ -52,6 +54,8 @@ export default function TourOne() {
     durationDays: 1,
     discountPercent: 0,
     area: "HA_NOI", // Default value
+    transportation: "", // New field
+    hotel: "", // New field
   });
 
   const areaOptions = [
@@ -173,6 +177,8 @@ export default function TourOne() {
         durationDays: 1,
         discountPercent: 0,
         area: "HA_NOI", // Default value
+        transportation: "", // New field
+        hotel: "", // New field
       });
       fetchTours();
     } catch (error) {
@@ -288,67 +294,62 @@ export default function TourOne() {
                       Đang tải dữ liệu...
                     </TableCell>
                   </TableRow>
-                ) : filteredTours.length === 0 ? ( // Changed from tours to filteredTours
+                ) : filteredTours.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-4">
                       Không có dữ liệu tour
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredTours.map(
-                    (
-                      tour,
-                      index // Changed from tours to filteredTours
-                    ) => (
-                      <TableRow key={tour.id}>
-                        <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400 sticky left-0 bg-white dark:bg-gray-800 z-10">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 text-gray-800 text-theme-sm dark:text-white/90 sticky left-[64px] bg-white dark:bg-gray-800 z-10">
-                          {tour.name}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 sticky left-[320px] bg-white dark:bg-gray-800 z-10">
-                          {tour.price.toLocaleString()}đ
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                          {tour.durationDays} ngày
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                          {tour.discountPercent}%
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                          {dayjs(tour.createdAt).format("DD/MM/YYYY")}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                          {areaOptions.find((opt) => opt.value === tour.area)
-                            ?.label || tour.area}
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setNewTour(tour);
-                                setIsEditing(true);
-                                setIsModalOpen(true);
-                              }}
-                              className="p-1 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
-                            >
-                              <PencilIcon className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setTourToDelete(tour);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                            >
-                              <TrashIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  )
+                  filteredTours.map((tour, index) => (
+                    <TableRow key={tour.id}>
+                      <TableCell className="px-5 py-4 text-gray-500 text-theme-sm dark:text-gray-400 sticky left-0 bg-white dark:bg-gray-800 z-10">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 text-gray-800 text-theme-sm dark:text-white/90 sticky left-[64px] bg-white dark:bg-gray-800 z-10">
+                        {tour.name}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400 sticky left-[320px] bg-white dark:bg-gray-800 z-10">
+                        {tour.price.toLocaleString()}đ
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {tour.durationDays} ngày
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {tour.discountPercent}%
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {dayjs(tour.createdAt).format("DD/MM/YYYY")}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {areaOptions.find((opt) => opt.value === tour.area)
+                          ?.label || tour.area}
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setNewTour(tour);
+                              setIsEditing(true);
+                              setIsModalOpen(true);
+                            }}
+                            className="p-1 text-blue-500 hover:bg-blue-50 rounded-full transition-colors"
+                          >
+                            <PencilIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setTourToDelete(tour);
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
@@ -515,6 +516,31 @@ export default function TourOne() {
                       {errors.area}
                     </span>
                   )}
+                </div>
+                <div>
+                  <Label htmlFor="transportation">Phương tiện</Label>
+                  <Input
+                    type="text"
+                    id="transportation"
+                    value={newTour.transportation || ""}
+                    onChange={(e) => {
+                      setNewTour({
+                        ...newTour,
+                        transportation: e.target.value,
+                      });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hotel">Khách sạn</Label>
+                  <Input
+                    type="text"
+                    id="hotel"
+                    value={newTour.hotel || ""}
+                    onChange={(e) => {
+                      setNewTour({ ...newTour, hotel: e.target.value });
+                    }}
+                  />
                 </div>
               </div>
 
