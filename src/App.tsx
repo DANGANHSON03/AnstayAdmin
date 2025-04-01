@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SignIn from "./pages/AuthPages/SignIn";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
@@ -26,54 +32,48 @@ import PermsPage from "./pages/PermsPage/PermsPage";
 import HistoryTourOne from "./components/HistoryOne/HistoryTourOne";
 import HistoryAptOne from "./components/HistoryOne/HistoryAptOne";
 import Schedule from "./pages/TourShowtime/Schedule";
+
 export default function App() {
+  const isAuthenticated = localStorage.getItem("token");
+
   return (
     <>
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/home" element={<Home />} />
-
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
-
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
-
-            {/* Tour */}
-            <Route path="/tour" element={<Tour />} />
-            <Route path="/imgtour" element={<Imgtour />} />
-            <Route path="/apt" element={<AptPage />} />
-            <Route path="/imgapt" element={<ImgAptPage />} />
-            <Route path="/cif" element={<CIFPage />} />
-            <Route path="/perms" element={<PermsPage />} />
-            <Route path="/history-tour" element={<HistoryTourOne />} />
-            <Route path="/history-apt" element={<HistoryAptOne />} />
-            <Route path="/schedule" element={<Schedule />} />
-
-            {/* Components */}
-
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
-
-            {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? <Navigate to="/home" replace /> : <SignIn />
+            }
+          />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/profile" element={<UserProfiles />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/blank" element={<Blank />} />
+              <Route path="/form-elements" element={<FormElements />} />
+              <Route path="/tour" element={<Tour />} />
+              <Route path="/imgtour" element={<Imgtour />} />
+              <Route path="/apt" element={<AptPage />} />
+              <Route path="/imgapt" element={<ImgAptPage />} />
+              <Route path="/cif" element={<CIFPage />} />
+              <Route path="/perms" element={<PermsPage />} />
+              <Route path="/history-tour" element={<HistoryTourOne />} />
+              <Route path="/history-apt" element={<HistoryAptOne />} />
+              <Route path="/schedule" element={<Schedule />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/avatars" element={<Avatars />} />
+              <Route path="/badge" element={<Badges />} />
+              <Route path="/buttons" element={<Buttons />} />
+              <Route path="/images" element={<Images />} />
+              <Route path="/videos" element={<Videos />} />
+              <Route path="/line-chart" element={<LineChart />} />
+              <Route path="/bar-chart" element={<BarChart />} />
+            </Route>
           </Route>
 
-          {/* Auth Layout */}
-          <Route path="/" element={<SignIn />} />
-
-          {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

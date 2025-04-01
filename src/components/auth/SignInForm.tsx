@@ -48,6 +48,7 @@ export default function SignInForm() {
       if (user) {
         if (user.role === "SUPER_ADMIN" || user.role === "ADMIN") {
           localStorage.setItem("userData", JSON.stringify(user));
+          localStorage.setItem("token", "your_token_here");
           navigate("/home");
         } else {
           setError("Access denied. Admin privileges required.");
