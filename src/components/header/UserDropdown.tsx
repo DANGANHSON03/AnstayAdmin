@@ -11,7 +11,7 @@ export default function UserDropdown() {
     id: "",
     fullName: "",
     email: "",
-    avatarUrl: "/images/user/owner.jpg",
+    avatarUrl: "https://i.ibb.co/35SyTcnX/Anstay.png",
   });
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src={userData.avatar || "/images/user/owner.jpg"} alt="User" />
+          <img src={userData.avatar || "https://i.ibb.co/35SyTcnX/Anstay.png"} alt="User" />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">

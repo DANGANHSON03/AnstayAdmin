@@ -294,20 +294,24 @@ const AppSidebar: React.FC = () => {
         <Link to="/home">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
+            <div className="flex items-center ">
               <img
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="https://i.ibb.co/35SyTcnX/Anstay.png"
+                alt="Logo"
+                width={50}
+                height={40}
+              />
+              <p className="ml-5 text-[25px] ">Anstay</p>
+            </div>
+              
+              {/* <img
+                className=" dark:block"
+                src="https://i.ibb.co/35SyTcnX/Anstay.png"
                 alt="Logo"
                 width={150}
                 height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
+              /> */}
               <p>ADMIN</p>
             </>
           ) : (

@@ -31,7 +31,7 @@ export default function SignInForm() {
     setError("");
 
     if (!loginData.email || !loginData.password) {
-      setError("Please fill in all fields");
+      setError("Vui lòng điền vào tất cả các trường");
       setLoading(false);
       return;
     }
@@ -51,13 +51,13 @@ export default function SignInForm() {
           localStorage.setItem("token", "your_token_here");
           navigate("/home");
         } else {
-          setError("Access denied. Admin privileges required.");
+          setError("Quyền truy cập bị từ chối. Cần có quyền quản trị.");
         }
       } else {
-        setError("Invalid email or password");
+        setError("Email hoặc mật khẩu không hợp lệ");
       }
     } catch (err: any) {
-      setError("Something went wrong. Please try again.");
+      setError("Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
