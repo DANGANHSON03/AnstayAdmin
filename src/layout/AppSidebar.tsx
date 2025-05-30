@@ -39,6 +39,11 @@ const navItems: NavItem[] = [
     disabled: true,
   },
   {
+    icon: <CalenderIcon />,
+    name: "Lịch đặt phòng",
+    path: "/calendarAPT",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "Thông tin cá nhân",
     path: "/profile",
@@ -294,17 +299,17 @@ const AppSidebar: React.FC = () => {
         <Link to="/home">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-            <div className="flex items-center ">
-              <img
-                className="dark:hidden"
-                src="https://i.ibb.co/35SyTcnX/Anstay.png"
-                alt="Logo"
-                width={50}
-                height={40}
-              />
-              <p className="ml-5 text-[25px] ">Anstay</p>
-            </div>
-              
+              <div className="flex items-center ">
+                <img
+                  className="dark:hidden"
+                  src="https://i.ibb.co/35SyTcnX/Anstay.png"
+                  alt="Logo"
+                  width={50}
+                  height={40}
+                />
+                <p className="ml-5 text-[25px] ">Anstay</p>
+              </div>
+
               {/* <img
                 className=" dark:block"
                 src="https://i.ibb.co/35SyTcnX/Anstay.png"

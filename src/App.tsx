@@ -32,6 +32,7 @@ import PermsPage from "./pages/PermsPage/PermsPage";
 import HistoryTourOne from "./components/HistoryOne/HistoryTourOne";
 import HistoryAptOne from "./components/HistoryOne/HistoryAptOne";
 import Schedule from "./pages/TourShowtime/Schedule";
+import CalendarAPT from "./pages/CalendarAPT";
 
 export default function App() {
   const isAuthenticated = localStorage.getItem("token");
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/calendar" element={<Calendar />} />
+              <Route path="/calendarAPT" element={<CalendarAPT />} />
               <Route path="/blank" element={<Blank />} />
               <Route path="/form-elements" element={<FormElements />} />
               <Route path="/tour" element={<Tour />} />

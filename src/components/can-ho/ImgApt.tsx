@@ -86,7 +86,7 @@ export default function ImgApt() {
 
     try {
       const response = await fetch(
-        "http://localhost:8085/api/apartments/images",
+        "http://localhost:8085/api/apartment-images",
         {
           method: "POST",
           body: formData,
@@ -96,6 +96,9 @@ export default function ImgApt() {
         setImages([]);
         setPreviewUrls([]);
         setIsModalOpen(false);
+
+        // REFRESH lại apartments để cập nhật ảnh mới!
+        await fetchApartments();
       }
     } catch (error) {
       console.error("Error uploading images:", error);

@@ -65,12 +65,12 @@ export default function ImgTourOne() {
   const handleImageSubmit = async () => {
     const formData = new FormData();
     images.forEach((image) => {
-      formData.append("images", image);
+      formData.append("images", image); // key phải là "images"
     });
     formData.append("tour_id", selectedTourId?.toString() || "");
 
     try {
-      const response = await fetch("/api/tour-images", {
+      const response = await fetch("http://localhost:8085/api/tour-images", {
         method: "POST",
         body: formData,
       });
@@ -78,6 +78,11 @@ export default function ImgTourOne() {
         setImages([]);
         setPreviewUrls([]);
         setIsModalOpen(false);
+
+        // *** Refetch lại list tour sau khi upload thành công ***
+        const toursResponse = await fetch("http://localhost:8085/api/tours");
+        const data = await toursResponse.json();
+        setTours(Array.isArray(data) ? data : [data]);
       }
     } catch (error) {
       console.error("Error uploading images:", error);
