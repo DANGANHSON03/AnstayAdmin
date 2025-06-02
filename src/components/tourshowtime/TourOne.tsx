@@ -75,7 +75,7 @@ export default function TourOne() {
   const fetchTours = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8085/api/tours");
+      const response = await fetch("https://anstay.com.vn/api/tours");
 
       if (!response.ok) throw new Error("Failed to fetch tours");
       const data = await response.json();
@@ -141,8 +141,8 @@ export default function TourOne() {
 
     try {
       const url = isEditing
-        ? `http://localhost:8085/api/tours-crud/${newTour.id}`
-        : "http://localhost:8085/api/tours-crud";
+        ? `https://anstay.com.vn/api/tours-crud/${newTour.id}`
+        : "https://anstay.com.vn/api/tours-crud";
 
       // When editing, only send fields that have been changed
       const body = isEditing
@@ -190,7 +190,7 @@ export default function TourOne() {
     if (!tourToDelete) return;
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tours-crud/${tourToDelete.id}`,
+        `https://anstay.com.vn/api/tours-crud/${tourToDelete.id}`,
         {
           method: "DELETE",
         }

@@ -26,7 +26,7 @@ export default function UserDropdown() {
         }
 
         const response = await axios.get(
-          `http://localhost:8085/api/users/${id}`,
+          `https://anstay.com.vn/api/users/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -69,7 +69,10 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src={userData.avatar || "https://i.ibb.co/35SyTcnX/Anstay.png"} alt="User" />
+          <img
+            src={userData.avatar || "https://i.ibb.co/35SyTcnX/Anstay.png"}
+            alt="User"
+          />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">

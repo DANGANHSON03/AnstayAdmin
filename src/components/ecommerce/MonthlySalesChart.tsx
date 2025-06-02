@@ -14,7 +14,7 @@ export default function MonthlySalesChart() {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8085/api/statistics/monthly-revenue?year=${selectedYear}`
+          `https://anstay.com.vn/api/statistics/monthly-revenue?year=${selectedYear}`
         );
         const data = await response.json();
 

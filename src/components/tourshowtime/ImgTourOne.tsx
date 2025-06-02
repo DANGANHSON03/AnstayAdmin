@@ -32,7 +32,7 @@ export default function ImgTourOne() {
   useEffect(() => {
     const fetchTours = async () => {
       try {
-        const response = await fetch("http://localhost:8085/api/tours");
+        const response = await fetch("https://anstay.com.vn/api/tours");
         const data = await response.json();
         setTours(Array.isArray(data) ? data : [data]);
       } catch (error) {
@@ -70,7 +70,7 @@ export default function ImgTourOne() {
     formData.append("tour_id", selectedTourId?.toString() || "");
 
     try {
-      const response = await fetch("http://localhost:8085/api/tour-images", {
+      const response = await fetch("https://anstay.com.vn/api/tour-images", {
         method: "POST",
         body: formData,
       });
@@ -80,7 +80,7 @@ export default function ImgTourOne() {
         setIsModalOpen(false);
 
         // *** Refetch lại list tour sau khi upload thành công ***
-        const toursResponse = await fetch("http://localhost:8085/api/tours");
+        const toursResponse = await fetch("https://anstay.com.vn/api/tours");
         const data = await toursResponse.json();
         setTours(Array.isArray(data) ? data : [data]);
       }
@@ -92,7 +92,7 @@ export default function ImgTourOne() {
   const handleDeleteImage = async (imageId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tour-images/${imageId}`,
+        `https://anstay.com.vn/api/tour-images/${imageId}`,
         {
           method: "DELETE",
         }
@@ -100,7 +100,7 @@ export default function ImgTourOne() {
 
       if (response.ok) {
         // Refresh tours data after successful deletion
-        const toursResponse = await fetch("http://localhost:8085/api/tours");
+        const toursResponse = await fetch("https://anstay.com.vn/api/tours");
         const data = await toursResponse.json();
         setTours(Array.isArray(data) ? data : [data]);
       }
@@ -115,7 +115,7 @@ export default function ImgTourOne() {
   ) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tour-images/${imageId}/isFeatured`,
+        `https://anstay.com.vn/api/tour-images/${imageId}/isFeatured`,
         {
           method: "PATCH",
           headers: {

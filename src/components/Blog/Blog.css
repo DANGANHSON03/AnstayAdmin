@@ -1,0 +1,191 @@
+.blog-admin {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.title-row,
+.editor-row {
+  margin-bottom: 16px;
+}
+
+.blog-title-input,
+.blog-editor {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.blog-editor {
+  min-height: 250px;
+  background: #fafbfc;
+  margin-bottom: 0;
+}
+
+.blog-toolbar {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  background: #f7f7f7;
+  padding: 12px 10px 6px 10px;
+  border-radius: 10px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-group.align-group {
+  gap: 2px;
+  margin-left: 12px;
+  border-left: 1px solid #ddd;
+  padding-left: 12px;
+}
+
+.blog-toolbar button,
+.blog-toolbar label {
+  margin-right: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #f1f1f1;
+  border: none;
+  cursor: pointer;
+  min-width: 34px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blog-toolbar .icon-btn {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin-right: 0;
+}
+.blog-toolbar .icon-btn svg {
+  display: block;
+}
+
+/* Đảm bảo dropdown căn trái tuyệt đối */
+.font-family-select,
+.font-size-select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fafbfc;
+  font-size: 1rem;
+  text-align: left !important;
+  text-align-last: left !important;
+  direction: ltr !important;
+  height: 34px;
+}
+.font-family-select option,
+.font-size-select option {
+  text-align: left !important;
+  direction: ltr !important;
+}
+
+.toolbar-image-btn {
+  background: #f1f1f1;
+  border: none;
+  min-width: 34px;
+  min-height: 34px;
+  margin: 0;
+}
+
+/* Style cho input chỉnh size ảnh */
+.image-size-input {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 2px 6px;
+  font-size: 1rem;
+  margin-right: 0;
+}
+
+.delete-image-btn {
+  background: #ffebee;
+  border: 1px solid #e53935;
+  color: #d32f2f;
+  border-radius: 5px;
+  padding: 0 8px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.delete-image-btn:hover {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+.blog-editor span[style*="font-size"] {
+  font-size: unset !important;
+}
+
+.save-btn {
+  padding: 12px 36px;
+  background: #056de8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.thumbnail-row {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.thumbnail-label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thumbnail-btn {
+  margin-left: 10px;
+  padding: 6px 18px;
+  border-radius: 7px;
+  border: 1px solid #eee;
+  background: #f5f6fa;
+  color: #222;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.thumbnail-btn:hover {
+  background: #e1e6ee;
+}
+
+.thumbnail-preview {
+  margin-top: 7px;
+}
+.thumbnail-preview img {
+  max-height: 92px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(60, 60, 80, 0.06);
+}
+.thumbnail-empty {
+  color: #999;
+  font-size: 0.96rem;
+  padding: 8px 0 0 0;
+}

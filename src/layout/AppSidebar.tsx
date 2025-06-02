@@ -83,6 +83,14 @@ const navItems: NavItem[] = [
       { name: "Lịch sử căn hộ", path: "/history-apt", pro: false },
     ],
   },
+  {
+    name: "Tính năng",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "Viết bài Blog", path: "/blog", pro: false },
+      { name: "Duyệt bài", path: "/status-blog", pro: false },
+    ],
+  },
 ];
 
 const AppSidebar: React.FC = () => {

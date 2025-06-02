@@ -21,7 +21,7 @@ export default function MonthlyTarget() {
   const [areaStats, setAreaStats] = useState<AreaRevenue[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/statistics/revenue-by-area")
+    fetch("https://anstay.com.vn/api/statistics/revenue-by-area")
       .then((res) => res.json())
       .then((data) => setAreaStats(data))
       .catch((error) => console.error("Error fetching stats:", error));

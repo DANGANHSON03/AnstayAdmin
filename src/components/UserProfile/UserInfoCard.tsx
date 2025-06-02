@@ -51,7 +51,7 @@ export default function UserInfoCard() {
         }
 
         const response = await axios.get(
-          `http://localhost:8085/api/users/${id}`,
+          `https://anstay.com.vn/api/users/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -110,7 +110,7 @@ export default function UserInfoCard() {
       };
 
       const response = await axios.put(
-        `http://localhost:8085/api/users/update/${id}`,
+        `https://anstay.com.vn/api/users/update/${id}`,
         updatedData,
         {
           headers: {

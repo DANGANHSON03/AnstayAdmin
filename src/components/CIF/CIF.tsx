@@ -117,7 +117,7 @@ export default function CIF() {
       console.log("Update Payload:", JSON.stringify(updatePayload, null, 2));
 
       const response = await fetch(
-        `http://localhost:8085/api/users/update/${newUser.id}`,
+        `https://anstay.com.vn/api/users/update/${newUser.id}`,
         {
           method: "PUT",
           headers: {
@@ -130,7 +130,7 @@ export default function CIF() {
       if (!response.ok) throw new Error("Update failed");
 
       const response2 = await fetch(
-        "http://localhost:8085/api/users/by-role?role=USER"
+        "https://anstay.com.vn/api/users/by-role?role=USER"
       );
       const data = await response2.json();
       setUsers(data);
@@ -172,14 +172,14 @@ export default function CIF() {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8085/api/users/delete/${userToDelete}`,
+        `https://anstay.com.vn/api/users/delete/${userToDelete}`,
         {
           method: "DELETE",
         }
       );
       if (!response.ok) throw new Error("Delete failed");
 
-      const response2 = await fetch("http://localhost:8085/api/users");
+      const response2 = await fetch("https://anstay.com.vn/api/users");
       const data = await response2.json();
       setUsers(data);
       setIsDeleteModalOpen(false);
@@ -205,7 +205,7 @@ export default function CIF() {
       try {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:8085/api/users/by-role?role=USER"
+          "https://anstay.com.vn/api/users/by-role?role=USER"
         );
         if (!response.ok) {
           throw new Error("Network response was not ok");

@@ -117,7 +117,7 @@ export default function Perms() {
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await fetch("http://localhost:8085/api/users");
+        const response = await fetch("https://anstay.com.vn/api/users");
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser(userData);
@@ -156,12 +156,12 @@ export default function Perms() {
     try {
       setLoading(true);
       const getUserResponse = await fetch(
-        `http://localhost:8085/api/users/${newUser.id}`
+        `https://anstay.com.vn/api/users/${newUser.id}`
       );
       const existingUser = await getUserResponse.json();
 
       const response = await fetch(
-        `http://localhost:8085/api/users/update/${newUser.id}`,
+        `https://anstay.com.vn/api/users/update/${newUser.id}`,
         {
           method: "PUT",
           headers: {
@@ -225,7 +225,7 @@ export default function Perms() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8085/api/users");
+      const response = await fetch("https://anstay.com.vn/api/users");
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
@@ -261,7 +261,7 @@ export default function Perms() {
     if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8085/api/users/${id}`, {
+        const response = await fetch(`https://anstay.com.vn/api/users/${id}`, {
           method: "DELETE",
         });
 
@@ -270,7 +270,7 @@ export default function Perms() {
         }
 
         // Refresh user list
-        const fetchResponse = await fetch("http://localhost:8085/api/users");
+        const fetchResponse = await fetch("https://anstay.com.vn/api/users");
         const updatedUsers = await fetchResponse.json();
         setUsers(updatedUsers);
       } catch (error) {
@@ -294,7 +294,7 @@ export default function Perms() {
     const loadUsers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:8085/api/users");
+        const response = await fetch("https://anstay.com.vn/api/users");
         if (!response.ok) {
           throw new Error("Failed to fetch users");
         }

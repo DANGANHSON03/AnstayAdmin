@@ -15,7 +15,7 @@ export default function EcommerceMetrics() {
     const fetchTotalUsers = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8085/api/statistics/users"
+          "https://anstay.com.vn/api/statistics/users"
         );
         const data = await response.json();
         setTotalUsers(data.totalUsers);
@@ -27,7 +27,7 @@ export default function EcommerceMetrics() {
     const fetchTotalOrders = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8085/api/statistics/orders"
+          "https://anstay.com.vn/api/statistics/orders"
         );
         const data = await response.json();
         setTotalOrders(data.totalOrders);

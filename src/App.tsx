@@ -33,7 +33,8 @@ import HistoryTourOne from "./components/HistoryOne/HistoryTourOne";
 import HistoryAptOne from "./components/HistoryOne/HistoryAptOne";
 import Schedule from "./pages/TourShowtime/Schedule";
 import CalendarAPT from "./pages/CalendarAPT";
-
+import Blog from "./components/Blog/Blog";
+import StatusBlog from "./components/StatusBlog/StatusBlog";
 export default function App() {
   const isAuthenticated = localStorage.getItem("token");
 
@@ -73,6 +74,8 @@ export default function App() {
               <Route path="/videos" element={<Videos />} />
               <Route path="/line-chart" element={<LineChart />} />
               <Route path="/bar-chart" element={<BarChart />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/status-blog" element={<StatusBlog />} />
             </Route>
           </Route>
 

@@ -43,7 +43,7 @@ export default function ImgApt() {
 
   const fetchApartments = async () => {
     try {
-      const response = await fetch("http://localhost:8085/api/apartments");
+      const response = await fetch("https://anstay.com.vn/api/apartments");
       if (response.ok) {
         const data = await response.json();
         setApartments(data);
@@ -86,7 +86,7 @@ export default function ImgApt() {
 
     try {
       const response = await fetch(
-        "http://localhost:8085/api/apartment-images",
+        "https://anstay.com.vn/api/apartment-images",
         {
           method: "POST",
           body: formData,
@@ -108,7 +108,7 @@ export default function ImgApt() {
   const handleDeleteImage = async (imageId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/apartment-images/${imageId}`,
+        `https://anstay.com.vn/api/apartment-images/${imageId}`,
         {
           method: "DELETE",
           headers: {

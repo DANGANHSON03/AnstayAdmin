@@ -2,19 +2,34 @@ import { useState, useRef, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 
-// Danh sách phòng
-const ROOMS = [
-  { id: "B516", name: "Phòng B516" },
-  { id: "B517", name: "Phòng B517" },
-  { id: "B518", name: "Phòng B518" },
-];
+// Helper group dữ liệu từ API apartments/with-rooms để hiển thị dropdown 3 cấp
+function groupByAreaAndApartment(data) {
+  const areaMap = {};
+  data.forEach((apartment) => {
+    const areaLabel =
+      apartment.area === "HA_NOI"
+        ? "Hà Nội"
+        : apartment.area === "HA_LONG"
+        ? "Hạ Long"
+        : apartment.area;
+    if (!areaMap[areaLabel]) areaMap[areaLabel] = [];
+    areaMap[areaLabel].push({
+      apartmentId: apartment.id,
+      apartmentName: apartment.name,
+      rooms: apartment.rooms,
+    });
+  });
+  return Object.entries(areaMap).map(([area, apartments]) => ({
+    area,
+    apartments,
+  }));
+}
 
-// Danh sách nguồn OTA
+// DỮ LIỆU NGUỒN OTA
 const OTA_SOURCES = [
   { value: "website", label: "Website" },
   { value: "booking", label: "Booking.com" },
@@ -22,90 +37,15 @@ const OTA_SOURCES = [
   { value: "airbnb", label: "Airbnb" },
 ];
 
-// Fake data nhiều booking, nhiều phòng, đủ các OTA
-const FAKE_DB = [
-  {
-    id: "1",
-    title: "Đã đặt",
-    start: "2024-06-03",
-    roomId: "B516",
-    bookedBy: "Nguyễn Văn A",
-    ota: "booking",
-  },
-  {
-    id: "2",
-    title: "Đã đặt",
-    start: "2024-06-05",
-    roomId: "B516",
-    bookedBy: "Lê Văn B",
-    ota: "website",
-  },
-  {
-    id: "3",
-    title: "Đã đặt",
-    start: "2024-06-07",
-    roomId: "B516",
-    bookedBy: "Trần Thị C",
-    ota: "agoda",
-  },
-  {
-    id: "4",
-    title: "Đã đặt",
-    start: "2024-06-10",
-    roomId: "B517",
-    bookedBy: "Phạm Văn D",
-    ota: "booking",
-  },
-  {
-    id: "5",
-    title: "Đã đặt",
-    start: "2024-06-15",
-    roomId: "B518",
-    bookedBy: "Hoàng Thị E",
-    ota: "airbnb",
-  },
-  {
-    id: "6",
-    title: "Đã đặt",
-    start: "2024-06-18",
-    roomId: "B517",
-    bookedBy: "Lương Văn F",
-    ota: "agoda",
-  },
-  {
-    id: "7",
-    title: "Đã đặt",
-    start: "2024-06-22",
-    roomId: "B518",
-    bookedBy: "Vũ Minh G",
-    ota: "website",
-  },
-  {
-    id: "8",
-    title: "Đã đặt",
-    start: "2024-06-25",
-    roomId: "B516",
-    bookedBy: "Phan Thị H",
-    ota: "airbnb",
-  },
-];
-
-// Lấy chuỗi tháng yyyy-mm
-function getMonthString(date: Date) {
+// Helper: Lấy tháng yyyy-mm
+function getMonthString(date) {
   return `${date.getFullYear()}-${(date.getMonth() + 1)
     .toString()
     .padStart(2, "0")}`;
 }
 
-// Giả lập "API" lấy danh sách ngày đã book cho phòng và tháng
-function fetchBookings(roomId: string, month: string) {
-  return FAKE_DB.filter(
-    (b) => b.roomId === roomId && b.start.startsWith(month)
-  );
-}
-
-// Helper lấy array các ngày trong khoảng [start, end) (ISO date string)
-function getDateRange(start: string, end: string) {
+// Helper: Lấy array các ngày từ start đến trước end (chuẩn khách sạn)
+function getDateRange(start, end) {
   const arr = [];
   let current = new Date(start);
   const stop = new Date(end);
@@ -113,47 +53,218 @@ function getDateRange(start: string, end: string) {
     arr.push(current.toISOString().split("T")[0]);
     current.setDate(current.getDate() + 1);
   }
+  // Nếu checkIn = checkOut thì vẫn block đúng 1 ngày
+  if (arr.length === 0 && start === end) arr.push(start);
   return arr;
 }
 
-const CalendarAPT: React.FC = () => {
-  const [selectedRoomId, setSelectedRoomId] = useState("B516");
-  const [events, setEvents] = useState<any[]>([]);
+// ====================== COMPONENT CHỌN 3 CẤP ==========================
+function RoomSelect({
+  areaGroups,
+  selectedArea,
+  setSelectedArea,
+  selectedApartmentId,
+  setSelectedApartmentId,
+  selectedRoomId,
+  setSelectedRoomId,
+}) {
+  const apartments =
+    areaGroups.find((a) => a.area === selectedArea)?.apartments || [];
+  const rooms =
+    apartments.find(
+      (ap) => String(ap.apartmentId) === String(selectedApartmentId)
+    )?.rooms || [];
+
+  const handleAreaChange = (e) => {
+    const area = e.target.value;
+    const firstApartment = areaGroups.find((a) => a.area === area)
+      ?.apartments[0];
+    setSelectedArea(area);
+    setSelectedApartmentId(firstApartment?.apartmentId?.toString() || "");
+    setSelectedRoomId(firstApartment?.rooms[0]?.id?.toString() || "");
+  };
+
+  const handleApartmentChange = (e) => {
+    const apartmentId = e.target.value;
+    const firstRoom = apartments.find(
+      (ap) => String(ap.apartmentId) === String(apartmentId)
+    )?.rooms[0];
+    setSelectedApartmentId(apartmentId);
+    setSelectedRoomId(firstRoom?.id?.toString() || "");
+  };
+
+  const handleRoomChange = (e) => {
+    setSelectedRoomId(e.target.value);
+  };
+
+  return (
+    <div className="flex gap-2 items-center">
+      <select
+        value={selectedArea}
+        onChange={handleAreaChange}
+        className="border rounded px-2 py-1"
+      >
+        {areaGroups.map((a) => (
+          <option key={a.area} value={a.area}>
+            {a.area}
+          </option>
+        ))}
+      </select>
+      <select
+        value={selectedApartmentId}
+        onChange={handleApartmentChange}
+        className="border rounded px-2 py-1"
+      >
+        {apartments.map((ap) => (
+          <option key={ap.apartmentId} value={ap.apartmentId}>
+            {ap.apartmentName}
+          </option>
+        ))}
+      </select>
+      <select
+        value={selectedRoomId}
+        onChange={handleRoomChange}
+        className="border rounded px-2 py-1"
+      >
+        {rooms.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// ====================== MAIN COMPONENT ==========================
+const CalendarAPT = () => {
+  const [areaGroups, setAreaGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [bookingsByArea, setBookingsByArea] = useState({});
+  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedApartmentId, setSelectedApartmentId] = useState("");
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+  const [events, setEvents] = useState([]);
+  const [disabledDates, setDisabledDates] = useState([]); // danh sách ngày đã book
   const { isOpen, openModal, closeModal } = useModal();
-  const [selectedRange, setSelectedRange] = useState<{
-    start: string;
-    end: string;
-  } | null>(null);
+  const [selectedRange, setSelectedRange] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(
     getMonthString(new Date())
   );
   const [selectedOta, setSelectedOta] = useState(OTA_SOURCES[0].value);
-  const [modalMode, setModalMode] = useState<"booking" | "info" | null>(null);
-  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
-  const calendarRef = useRef<FullCalendar>(null);
+  const [modalMode, setModalMode] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const calendarRef = useRef(null);
 
-  // Khi chọn phòng/tháng -> "call API" lấy booking
+  // ALL_ROOMS dùng để lấy tên phòng/căn hộ/khu vực từ id
+  const ALL_ROOMS = areaGroups.flatMap((area) =>
+    area.apartments.flatMap((ap) =>
+      ap.rooms.map((r) => ({
+        ...r,
+        area: area.area,
+        apartmentId: ap.apartmentId,
+        apartmentName: ap.apartmentName,
+      }))
+    )
+  );
+
+  // Lấy tên căn hộ theo id
+  const getApartmentNameById = (apartmentId) =>
+    areaGroups
+      .flatMap((area) => area.apartments)
+      .find((ap) => String(ap.apartmentId) === String(apartmentId))
+      ?.apartmentName || apartmentId;
+
+  // Lấy tên phòng theo id
+  const getRoomNameById = (roomId) =>
+    ALL_ROOMS.find((r) => String(r.id) === String(roomId))?.name || roomId;
+
+  // Lấy tên khu vực theo id phòng
+  const getAreaNameByRoomId = (roomId) =>
+    ALL_ROOMS.find((r) => String(r.id) === String(roomId))?.area || "";
+
   useEffect(() => {
-    const bookings = fetchBookings(selectedRoomId, selectedMonth);
-    setEvents(bookings);
-  }, [selectedRoomId, selectedMonth]);
+    fetch("http://localhost:8085/api/apartments/with-rooms")
+      .then((res) => res.json())
+      .then((data) => {
+        const grouped = groupByAreaAndApartment(data);
+        setAreaGroups(grouped);
+        setLoading(false);
+        if (grouped.length > 0) {
+          setSelectedArea(grouped[0].area);
+          setSelectedApartmentId(
+            grouped[0].apartments[0]?.apartmentId?.toString() || ""
+          );
+          setSelectedRoomId(
+            grouped[0].apartments[0]?.rooms[0]?.id?.toString() || ""
+          );
+        }
+      });
+  }, []);
 
-  // Check ngày đã đặt hoặc đã qua
-  const isDateDisabled = (dateStr: string) => {
-    const isBooked = events.some((ev) => ev.start === dateStr);
+  useEffect(() => {
+    fetch("https://anstay.com.vn/api/apartment-bookings/by-area")
+      .then((res) => res.json())
+      .then((data) => {
+        setBookingsByArea(data);
+      });
+  }, []);
+
+  function getRoomBookings(selectedArea, selectedApartmentId, selectedRoomId) {
+    const bookingsInArea = bookingsByArea[selectedArea] || [];
+    return bookingsInArea.filter(
+      (b) =>
+        String(b.apartmentId) === String(selectedApartmentId) &&
+        String(b.roomId) === String(selectedRoomId)
+    );
+  }
+
+  useEffect(() => {
+    if (!selectedArea || !selectedApartmentId || !selectedRoomId) return;
+    const bookings = getRoomBookings(
+      selectedArea,
+      selectedApartmentId,
+      selectedRoomId
+    );
+    // Lấy các ngày đã book (từ checkIn đến trước checkOut)
+    let blocked = [];
+    bookings.forEach((b) => {
+      blocked = blocked.concat(getDateRange(b.checkIn, b.checkOut));
+    });
+    setDisabledDates(blocked);
+    setEvents(
+      bookings.map((b) => ({
+        id: b.id,
+        title: "Đã đặt",
+        start: b.checkIn,
+        end: b.checkOut,
+        extendedProps: {
+          bookedBy: b.guestName,
+          ota: "website",
+          date: b.checkIn,
+          roomId: b.roomId,
+        },
+        allDay: true,
+      }))
+    );
+  }, [selectedArea, selectedApartmentId, selectedRoomId, bookingsByArea]);
+
+  // Chặn ngày đã book hoặc đã qua hôm nay
+  const isDateDisabled = (dateStr) => {
+    const isBlocked = disabledDates.includes(dateStr);
     const today = new Date();
     const target = new Date(dateStr);
     const isPast = target < new Date(today.setHours(0, 0, 0, 0));
-    return isBooked || isPast;
+    return isBlocked || isPast;
   };
 
-  // Khi kéo chọn range ngày
-  const handleDateSelect = (selectInfo: DateSelectArg) => {
+  // Không cho phép chọn range có ngày disable
+  const selectAllow = (selectInfo) => {
     const dates = getDateRange(selectInfo.startStr, selectInfo.endStr);
-    if (dates.some(isDateDisabled)) {
-      alert("Khoảng ngày này có ngày đã đặt hoặc đã qua!");
-      return;
-    }
+    return !dates.some(isDateDisabled);
+  };
+
+  const handleDateSelect = (selectInfo) => {
     setSelectedRange({ start: selectInfo.startStr, end: selectInfo.endStr });
     setSelectedOta(OTA_SOURCES[0].value);
     setModalMode("booking");
@@ -161,16 +272,14 @@ const CalendarAPT: React.FC = () => {
     openModal();
   };
 
-  // Khi click vào event đã đặt, show info
-  const handleEventClick = (clickInfo: EventClickArg) => {
+  const handleEventClick = (clickInfo) => {
     setSelectedBooking(clickInfo.event.extendedProps);
     setModalMode("info");
     setSelectedRange(null);
     openModal();
   };
 
-  // Render event bị mờ
-  const renderEventContent = (eventInfo: any) => (
+  const renderEventContent = (eventInfo) => (
     <div
       className="p-1 rounded flex items-center opacity-50 cursor-pointer"
       title={`Đã đặt bởi: ${eventInfo.event.extendedProps.bookedBy}`}
@@ -180,42 +289,39 @@ const CalendarAPT: React.FC = () => {
     </div>
   );
 
-  // Khi chọn tháng, chuyển calendar về đúng tháng
-  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMonthChange = (e) => {
     setSelectedMonth(e.target.value);
     if (calendarRef.current) {
-      (calendarRef.current as any).getApi().gotoDate(e.target.value + "-01");
+      calendarRef.current.getApi().gotoDate(e.target.value + "-01");
     }
   };
 
-  // Hiển thị range ngày đẹp hơn trong modal
-  const formatRange = (range: { start: string; end: string } | null) => {
+  const formatRange = (range) => {
     if (!range) return "";
     const arr = getDateRange(range.start, range.end);
     if (arr.length === 1) return arr[0];
     return arr[0] + " đến " + arr[arr.length - 1];
   };
 
-  // Lấy label OTA source
-  const getOtaLabel = (otaValue: string) =>
+  const getOtaLabel = (otaValue) =>
     OTA_SOURCES.find((x) => x.value === otaValue)?.label || otaValue;
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <>
       <PageMeta title="Đặt lịch phòng" description="Lịch đặt từng phòng" />
       <div className="mb-4 flex items-center gap-2">
         <span className="font-semibold">Chọn phòng:</span>
-        <select
-          value={selectedRoomId}
-          onChange={(e) => setSelectedRoomId(e.target.value)}
-          className="border rounded px-3 py-2 text-sm"
-        >
-          {ROOMS.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
+        <RoomSelect
+          areaGroups={areaGroups}
+          selectedArea={selectedArea}
+          setSelectedArea={setSelectedArea}
+          selectedApartmentId={selectedApartmentId}
+          setSelectedApartmentId={setSelectedApartmentId}
+          selectedRoomId={selectedRoomId}
+          setSelectedRoomId={setSelectedRoomId}
+        />
         <input
           type="month"
           className="border rounded px-2 py-1 text-sm ml-2"
@@ -233,26 +339,17 @@ const CalendarAPT: React.FC = () => {
             center: "title",
             right: "",
           }}
-          events={events.map((ev) => ({
-            id: ev.id,
-            title: ev.title,
-            start: ev.start,
-            extendedProps: {
-              bookedBy: ev.bookedBy,
-              ota: ev.ota,
-              date: ev.start,
-              roomId: ev.roomId,
-            },
-            allDay: true,
-          }))}
+          events={events}
           selectable={true}
           selectMirror={true}
+          selectAllow={selectAllow}
           select={handleDateSelect}
           eventContent={renderEventContent}
           eventClick={handleEventClick}
           dayCellClassNames={(arg) => {
             if (arg.isOther) return [];
-            if (isDateDisabled(arg.date.toISOString().split("T")[0]))
+            const dateStr = arg.date.toISOString().split("T")[0];
+            if (isDateDisabled(dateStr))
               return [
                 "opacity-40",
                 "pointer-events-none",
@@ -269,7 +366,6 @@ const CalendarAPT: React.FC = () => {
             <>
               <div className="mb-4 flex items-center">
                 <span className="inline-block bg-blue-100 text-blue-700 rounded-full p-2 mr-3">
-                  {/* Icon phòng */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -289,8 +385,16 @@ const CalendarAPT: React.FC = () => {
               </div>
               <div className="w-full mb-3">
                 <div className="mb-1 text-gray-600">
+                  <span className="font-semibold">Khu vực:</span>{" "}
+                  {getAreaNameByRoomId(selectedBooking.roomId)}
+                </div>
+                <div className="mb-1 text-gray-600">
+                  <span className="font-semibold">Căn hộ:</span>{" "}
+                  {getApartmentNameById(selectedApartmentId)}
+                </div>
+                <div className="mb-1 text-gray-600">
                   <span className="font-semibold">Phòng:</span>{" "}
-                  {selectedBooking.roomId}
+                  {getRoomNameById(selectedBooking.roomId)}
                 </div>
                 <div className="mb-1 text-gray-600">
                   <span className="font-semibold">Ngày:</span>{" "}
@@ -317,7 +421,6 @@ const CalendarAPT: React.FC = () => {
             <>
               <div className="flex items-center mb-4">
                 <span className="inline-block bg-blue-100 text-blue-700 rounded-full p-2 mr-3">
-                  {/* Icon phòng */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -333,12 +436,13 @@ const CalendarAPT: React.FC = () => {
                 </span>
                 <h2 className="font-bold text-2xl text-gray-800">
                   Đặt phòng{" "}
-                  <span className="text-blue-600">{selectedRoomId}</span>
+                  <span className="text-blue-600">
+                    {getRoomNameById(selectedRoomId)}
+                  </span>
                 </h2>
               </div>
               <div className="flex items-center mb-6 w-full">
                 <span className="inline-block bg-gray-100 text-gray-500 rounded-full p-2 mr-3">
-                  {/* Icon lịch */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -384,9 +488,13 @@ const CalendarAPT: React.FC = () => {
                 className="mt-2 px-6 py-2 rounded-lg bg-blue-600 text-white text-base font-semibold hover:bg-blue-700 transition"
                 onClick={() => {
                   alert(
-                    `Đã đặt thành công!\n- Phòng: ${selectedRoomId}\n- Khoảng: ${formatRange(
-                      selectedRange
-                    )}\n- Qua: ${
+                    `Đã đặt thành công!\n- Khu vực: ${getAreaNameByRoomId(
+                      selectedRoomId
+                    )}\n- Căn hộ: ${getApartmentNameById(
+                      selectedApartmentId
+                    )}\n- Phòng: ${getRoomNameById(
+                      selectedRoomId
+                    )}\n- Khoảng: ${formatRange(selectedRange)}\n- Qua: ${
                       OTA_SOURCES.find((x) => x.value === selectedOta)?.label
                     }`
                   );

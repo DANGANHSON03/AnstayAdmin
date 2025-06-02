@@ -120,7 +120,7 @@ export default function Apt() {
       setLoading(true);
       try {
         const response = await fetch(
-          "http://localhost:8085/api/apartments?includeOwner=true"
+          "https://anstay.com.vn/api/apartments?includeOwner=true"
         );
         const data = await response.json();
         setApartments(data);
@@ -143,7 +143,7 @@ export default function Apt() {
     const fetchOwners = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8085/api/apartment-owners"
+          "https://anstay.com.vn/api/apartment-owners"
         );
         const data = await response.json();
         setOwners(data);
@@ -210,8 +210,8 @@ export default function Apt() {
       };
 
       const url = isEditing
-        ? `http://localhost:8085/api/apartments/${id}`
-        : "http://localhost:8085/api/apartments";
+        ? `https://anstay.com.vn/api/apartments/${id}`
+        : "https://anstay.com.vn/api/apartments";
 
       const response = await fetch(url, {
         method: isEditing ? "PUT" : "POST",
@@ -243,7 +243,7 @@ export default function Apt() {
       }
 
       const listResponse = await fetch(
-        "http://localhost:8085/api/apartments?includeOwner=true"
+        "https://anstay.com.vn/api/apartments?includeOwner=true"
       );
       const listData = await listResponse.json();
       setApartments(listData);
@@ -266,7 +266,7 @@ export default function Apt() {
   const handleEdit = async (apt: Apartment) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/apartments/${apt.id}`
+        `https://anstay.com.vn/api/apartments/${apt.id}`
       );
 
       if (!response.ok) {
@@ -319,7 +319,7 @@ export default function Apt() {
 
     try {
       const response = await fetch(
-        `http://localhost:8085/api/apartments/${apartmentToDelete}`,
+        `https://anstay.com.vn/api/apartments/${apartmentToDelete}`,
         {
           method: "DELETE",
         }
@@ -351,7 +351,7 @@ export default function Apt() {
     e.preventDefault();
     try {
       const response = await fetch(
-        "http://localhost:8085/api/apartment-owners",
+        "https://anstay.com.vn/api/apartment-owners",
         {
           method: "POST",
           headers: {
@@ -367,7 +367,7 @@ export default function Apt() {
 
       // Refresh owners list and update form
       const ownersResponse = await fetch(
-        "http://localhost:8085/api/apartment-owners"
+        "https://anstay.com.vn/api/apartment-owners"
       );
       const updatedOwners = await ownersResponse.json();
       setOwners(updatedOwners);
@@ -391,7 +391,7 @@ export default function Apt() {
   const fetchOwnerDetails = async (ownerId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/apartment-owners/${ownerId}`
+        `https://anstay.com.vn/api/apartment-owners/${ownerId}`
       );
       if (!response.ok) throw new Error("Failed to fetch owner details");
       const ownerData = await response.json();

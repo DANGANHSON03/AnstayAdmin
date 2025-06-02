@@ -115,7 +115,7 @@ export default function ScheduleTourOne() {
   useEffect(() => {
     const fetchTours = async () => {
       try {
-        const response = await fetch("http://localhost:8085/api/tours");
+        const response = await fetch("https://anstay.com.vn/api/tours");
         const data = await response.json();
         setTours(Array.isArray(data) ? data : [data]);
       } catch (error) {
@@ -158,7 +158,7 @@ export default function ScheduleTourOne() {
 
   const fetchAllTours = async () => {
     try {
-      const response = await fetch("http://localhost:8085/api/tours");
+      const response = await fetch("https://anstay.com.vn/api/tours");
       const data = await response.json();
       setTours(Array.isArray(data) ? data : [data]);
 
@@ -180,7 +180,7 @@ export default function ScheduleTourOne() {
     if (!newDayForm.title || !selectedTour) return;
 
     try {
-      const response = await fetch("http://localhost:8085/api/tour-schedules", {
+      const response = await fetch("https://anstay.com.vn/api/tour-schedules", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -295,7 +295,7 @@ export default function ScheduleTourOne() {
   const handleDeleteDetail = async (scheduleId: number, detailId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tour-schedule-details/${detailId}`,
+        `https://anstay.com.vn/api/tour-schedule-details/${detailId}`,
         {
           method: "DELETE",
         }
@@ -337,7 +337,7 @@ export default function ScheduleTourOne() {
         deleteConfirmation.scheduleId
       ) {
         const response = await fetch(
-          `http://localhost:8085/api/tour-schedules/${deleteConfirmation.scheduleId}`,
+          `https://anstay.com.vn/api/tour-schedules/${deleteConfirmation.scheduleId}`,
           {
             method: "DELETE",
           }
@@ -402,7 +402,7 @@ export default function ScheduleTourOne() {
 
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tour-schedules/${scheduleToUpdate.id}`,
+        `https://anstay.com.vn/api/tour-schedules/${scheduleToUpdate.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -447,7 +447,7 @@ export default function ScheduleTourOne() {
 
     try {
       const response = await fetch(
-        `http://localhost:8085/api/tour-schedule-details/update/${editingDetail.detailId}`,
+        `https://anstay.com.vn/api/tour-schedule-details/update/${editingDetail.detailId}`,
         {
           method: "PUT",
           headers: {
@@ -503,7 +503,7 @@ export default function ScheduleTourOne() {
 
     try {
       const response = await fetch(
-        "http://localhost:8085/api/tour-schedule-details",
+        "https://anstay.com.vn/api/tour-schedule-details",
         {
           method: "POST",
           headers: {

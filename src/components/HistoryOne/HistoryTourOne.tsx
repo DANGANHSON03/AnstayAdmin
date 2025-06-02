@@ -91,7 +91,7 @@ const mockBookings = [
 ] as BookingHistory[];
 
 const fetchBookingById = async (id: number): Promise<TourBooking> => {
-  const response = await fetch(`http://localhost:8085/api/tour-bookings/${id}`);
+  const response = await fetch(`https://anstay.com.vn/api/tour-bookings/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch booking");
   }
@@ -111,7 +111,7 @@ const updateTourBooking = async (
   console.log("New status:", data.status);
 
   const response = await fetch(
-    `http://localhost:8085/api/tour-bookings/${id}/status?status=${data.status}`,
+    `https://anstay.com.vn/api/tour-bookings/${id}/status?status=${data.status}`,
     {
       method: "PUT",
       headers: {
@@ -250,15 +250,15 @@ export default function HistoryTourOne() {
       try {
         setLoading(true);
         const bookingsResponse = await fetch(
-          "http://localhost:8085/api/tour-bookings"
+          "https://anstay.com.vn/api/tour-bookings"
         );
         const bookingsData: TourBooking[] = await bookingsResponse.json();
 
         const enrichedBookings = await Promise.all(
           bookingsData.map(async (booking) => {
             const [userResponse, tourResponse] = await Promise.all([
-              fetch(`http://localhost:8085/api/users/${booking.userId}`),
-              fetch(`http://localhost:8085/api/tours/${booking.tourId}`),
+              fetch(`https://anstay.com.vn/api/users/${booking.userId}`),
+              fetch(`https://anstay.com.vn/api/tours/${booking.tourId}`),
             ]);
 
             const userData: User = await userResponse.json();

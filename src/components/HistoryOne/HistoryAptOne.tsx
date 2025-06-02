@@ -93,23 +93,23 @@ interface Apartment {
 
 // Add API fetch functions
 const fetchBookings = async (): Promise<ApiBooking[]> => {
-  const response = await fetch("http://localhost:8085/api/apartment-bookings");
+  const response = await fetch("https://anstay.com.vn/api/apartment-bookings");
   return response.json();
 };
 
 const fetchUser = async (id: number): Promise<User> => {
-  const response = await fetch(`http://localhost:8085/api/users/${id}`);
+  const response = await fetch(`https://anstay.com.vn/api/users/${id}`);
   return response.json();
 };
 
 const fetchApartment = async (id: number): Promise<Apartment> => {
-  const response = await fetch(`http://localhost:8085/api/apartments/${id}`);
+  const response = await fetch(`https://anstay.com.vn/api/apartments/${id}`);
   return response.json();
 };
 
 const fetchBookingById = async (id: number): Promise<ApiBooking> => {
   const response = await fetch(
-    `http://localhost:8085/api/apartment-bookings/${id}`
+    `https://anstay.com.vn/api/apartment-bookings/${id}`
   );
   if (!response.ok) {
     throw new Error("Failed to fetch booking");
@@ -140,7 +140,7 @@ const updateBooking = async (
   console.log("Final update data:", apiData);
 
   const response = await fetch(
-    `http://localhost:8085/api/apartment-bookings/${id}`,
+    `https://anstay.com.vn/api/apartment-bookings/${id}`,
     {
       method: "PUT",
       headers: {
