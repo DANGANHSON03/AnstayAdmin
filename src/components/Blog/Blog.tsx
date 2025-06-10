@@ -11,7 +11,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import "./Blog.css";
 
 // Cấu hình domain backend
-const API_IMAGE_PREFIX = "http://localhost:8085";
+const API_IMAGE_PREFIX = "https://anstay.com.vn";
 
 // Hàm upload ảnh luôn trả về url có domain
 const uploadImage = async (file) => {
