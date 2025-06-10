@@ -263,6 +263,10 @@ const Blog = () => {
       );
       console.log("Kết quả lưu bài viết:", response.data);
       alert("Lưu bài viết thành công!");
+      setTitle("");
+      setThumbnail("");
+      setSummary("");
+      editor.commands.clearContent();
     } catch (e) {
       alert("Có lỗi khi lưu bài viết!");
     }

@@ -58,7 +58,7 @@ const StatusBlog = () => {
             <tr key={b.id}>
               <td>{idx + 1}</td>
               <td style={{ fontWeight: 600 }}>{b.title}</td>
-              <td>{b.createdByName || "Admin"}</td>
+              <td>{b.createdBy === 1 ? "Admin" : "User"}</td>
               <td>{b.createdAt?.slice(0, 16).replace("T", " ")}</td>
               <td>
                 <button
