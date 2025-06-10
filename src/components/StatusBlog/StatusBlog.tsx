@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./StatusBlog.css";
 
-const API_PREFIX = "http://localhost:8085";
+const API_PREFIX = "https://anstay.com.vn";
 
 const StatusBlog = () => {
   const [blogList, setBlogList] = useState([]);

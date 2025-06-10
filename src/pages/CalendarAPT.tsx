@@ -184,7 +184,7 @@ const CalendarAPT = () => {
     ALL_ROOMS.find((r) => String(r.id) === String(roomId))?.area || "";
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/apartments/with-rooms")
+    fetch("https://anstay.com.vn/api/apartments/with-rooms")
       .then((res) => res.json())
       .then((data) => {
         const grouped = groupByAreaAndApartment(data);
