@@ -1,0 +1,170 @@
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(2px);
+}
+.dark table.min-w-full thead tr {
+  background-color: rgb(
+    55 65 81
+  ) !important; /* gray-700 - đậm hơn body một chút */
+}
+
+.dark table.min-w-full thead th {
+  background-color: rgb(55 65 81) !important;
+  color: rgb(229 231 235) !important;
+  border-color: rgb(75 85 99) !important;
+}
+
+.dark table.min-w-full tbody tr {
+  background-color: rgb(31 41 55) !important;
+}
+
+.dark table.min-w-full tbody td {
+  background-color: rgb(31 41 55) !important;
+  color: rgb(229 231 235) !important;
+  border-color: rgb(75 85 99) !important;
+}
+
+.dark table.min-w-full tbody tr:hover {
+  background-color: rgb(55 65 81) !important;
+}
+
+.dark table.min-w-full tbody tr:hover td {
+  background-color: rgb(55 65 81) !important;
+}
+
+.dark .bg-white {
+  background-color: rgb(31 41 55) !important;
+}
+.dark .bg-gray-50 {
+  background-color: rgb(55 65 81) !important;
+}
+
+.dark table.min-w-full,
+.dark table.min-w-full th,
+.dark table.min-w-full td {
+  border-color: rgb(75 85 99) !important; /* gray-600 */
+}
+/* CSS Fix cho Popup/Modal trong Dark Mode */
+
+/* Modal/Popup background overlay */
+.dark .modal-overlay,
+.dark .fixed.inset-0 {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Modal container/content */
+.dark .modal-content,
+.dark .bg-white.rounded-lg,
+.dark .bg-white {
+  background-color: rgb(31 41 55) !important; /* gray-800 */
+  color: rgb(229 231 235) !important; /* gray-200 */
+  border-color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+/* Modal header */
+.dark .modal-header {
+  background-color: rgb(55 65 81) !important; /* gray-700 */
+  color: rgb(229 231 235) !important; /* gray-200 */
+  border-bottom-color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+/* Form inputs */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark select,
+.dark textarea {
+  background-color: rgb(55 65 81) !important; /* gray-700 */
+  color: rgb(229 231 235) !important; /* gray-200 */
+  border-color: rgb(75 85 99) !important; /* gray-600 */
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  background-color: rgb(55 65 81) !important; /* gray-700 */
+  border-color: rgb(59 130 246) !important; /* blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Input placeholder */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(156 163 175) !important; /* gray-400 */
+}
+
+/* Labels */
+.dark label {
+  color: rgb(229 231 235) !important; /* gray-200 */
+}
+
+/* Buttons */
+.dark .btn-primary,
+.dark .bg-blue-500,
+.dark .bg-blue-600 {
+  background-color: rgb(59 130 246) !important; /* blue-500 */
+  color: white !important;
+}
+
+.dark .btn-primary:hover,
+.dark .bg-blue-500:hover,
+.dark .bg-blue-600:hover {
+  background-color: rgb(37 99 235) !important; /* blue-600 */
+}
+
+.dark .btn-secondary,
+.dark .bg-gray-300,
+.dark .bg-gray-200 {
+  background-color: rgb(75 85 99) !important; /* gray-600 */
+  color: rgb(229 231 235) !important; /* gray-200 */
+}
+
+.dark .btn-secondary:hover {
+  background-color: rgb(107 114 128) !important; /* gray-500 */
+}
+
+/* Close button */
+.dark .close-btn,
+.dark .text-gray-500 {
+  color: rgb(156 163 175) !important;
+}
+
+.dark .close-btn:hover {
+  color: rgb(229 231 235) !important;
+}
+
+.dark .form-group,
+.dark .space-y-4 > div {
+  border-color: rgb(75 85 99) !important;
+}
+
+.dark select option {
+  background-color: rgb(55 65 81) !important;
+  color: rgb(229 231 235) !important;
+}
+
+.dark .text-gray-900 {
+  color: rgb(229 231 235) !important;
+}
+
+.dark .text-gray-700 {
+  color: rgb(229 231 235) !important;
+}
+
+.dark .text-gray-600 {
+  color: rgb(156 163 175) !important;
+}
+.dark .border-gray-300 {
+  border-color: rgb(75 85 99) !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: rgb(55 65 81) !important;
+}
+
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+}

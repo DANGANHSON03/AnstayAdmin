@@ -25,7 +25,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Tour from "./pages/TourShowtime/Tour";
 import Imgtour from "./pages/TourShowtime/Imgtour";
-import AptPage from "./pages/AptPages/AptPage";
+import AptPage from "./pages/AptPage/AptPage";
 import ImgAptPage from "./pages/AptPages/ImgAptPage";
 import CIFPage from "./pages/CIF/CIFPage";
 import PermsPage from "./pages/PermsPage/PermsPage";
@@ -35,6 +35,8 @@ import Schedule from "./pages/TourShowtime/Schedule";
 import CalendarAPT from "./pages/CalendarAPT";
 import Blog from "./components/Blog/Blog";
 import StatusBlog from "./components/StatusBlog/StatusBlog";
+import AptPayPage from "./pages/AptPaypage/AptPayPage";
+import AptOrderHistory from "./pages/AptPageOrderHistory/AptOrderHistory";
 export default function App() {
   const isAuthenticated = localStorage.getItem("token");
 
@@ -76,6 +78,8 @@ export default function App() {
               <Route path="/bar-chart" element={<BarChart />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/status-blog" element={<StatusBlog />} />
+              <Route path="/apt-pay" element={<AptPayPage />} />
+              <Route path="/apt-order-history" element={<AptOrderHistory />} />
             </Route>
           </Route>
 

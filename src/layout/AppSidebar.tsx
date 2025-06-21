@@ -76,6 +76,15 @@ const navItems: NavItem[] = [
     path: "/perms",
   },
   {
+    name: "Đơn hàng ",
+    icon: <TableIcon />,
+    subItems: [
+      { name: "Đơn hàng thành công", path: "/apt", pro: false },
+      { name: "Chờ xác nhận đơn", path: "/apt-pay", pro: false },
+      { name: "Thất bại/ hoàn tiền ", path: "/apt-order-history", pro: false },
+    ],
+  },
+  {
     name: "Lịch sử",
     icon: <TableIcon />,
     subItems: [
