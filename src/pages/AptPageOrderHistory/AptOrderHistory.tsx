@@ -29,7 +29,7 @@ export default function AptOrderHistory() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const apiUrl = "http://localhost:8085/api/payments/history";
+      const apiUrl = "https://anstay.com.vn/api/payments/history";
       console.log("🔗 Gọi API:", apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -118,7 +118,7 @@ export default function AptOrderHistory() {
         queryParams.append("date", dateFilter);
       }
 
-      const url = `http://localhost:8085/api/payments/history${
+      const url = `https://anstay.com.vn/api/payments/history${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
 
@@ -308,7 +308,7 @@ export default function AptOrderHistory() {
   const viewOrderDetail = async (orderId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:8085/api/payments/history/${orderId}`,
+        `https://anstay.com.vn/api/payments/history/${orderId}`,
         {
           method: "GET",
           headers: {

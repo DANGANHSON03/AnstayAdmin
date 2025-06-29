@@ -16,7 +16,7 @@ export default function AptPayPage() {
   const [deleteOrder, setDeleteOrder] = useState<any>(null);
 
   /**  useEffect(() => {
-    fetch("http://localhost:8085/api/payments/pending")
+    fetch("https://anstay.com.vn/api/payments/pending")
       .then((res) => res.json())
       .then((data) => {
         setOrders(data);
@@ -26,7 +26,7 @@ export default function AptPayPage() {
   }, []);**/
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/payments/report/with-checkin-checkout")
+    fetch("https://anstay.com.vn/api/payments/report/with-checkin-checkout")
       .then((res) => res.json())
       .then((data) => {
         setOrders(data);
@@ -81,7 +81,7 @@ export default function AptPayPage() {
 
       // Gửi yêu cầu PUT
       const response = await fetch(
-        `http://localhost:8085/api/payments/${editId}`,
+        `https://anstay.com.vn/api/payments/${editId}`,
         {
           method: "PUT",
           headers: {

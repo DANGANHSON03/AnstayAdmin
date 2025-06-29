@@ -6,7 +6,7 @@ export default function AptPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:8085/api/payments/completed")
+    fetch("https://anstay.com.vn/api/payments/completed")
       .then((res) => res.json())
       .then((data) => {
         // ✅ DEBUG: Xem dữ liệu API trả về
