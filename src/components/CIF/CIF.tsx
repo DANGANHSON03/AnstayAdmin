@@ -322,9 +322,9 @@ export default function CIF() {
               <th scope="col" className="px-6 py-3">
                 Ngày sinh
               </th>
-              <th scope="col" className="px-6 py-3">
+              {/* <th scope="col" className="px-6 py-3">
                 Thao tác
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody>
@@ -359,7 +359,7 @@ export default function CIF() {
                     {new Date(user.dob).toLocaleDateString("vi-VN")}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEdit(user)}
                         className="text-blue-500 hover:text-blue-700"
@@ -372,7 +372,7 @@ export default function CIF() {
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
-                    </div>
+                    </div> */}
                   </td>
                 </tr>
               ))

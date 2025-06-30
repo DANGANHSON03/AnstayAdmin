@@ -290,7 +290,7 @@ export default function AptOrderHistory() {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
 
-    console.log("📊 Exported", csvData.length, "orders to CSV");
+    console.log("Exported", csvData.length, "orders to CSV");
   };
 
   // Fetch khi tab thay đổi
@@ -362,16 +362,10 @@ Lý do: ${orderDetail.reason || "Không có"}`;
           </div>
           <div className="flex gap-3">
             <button
-              onClick={exportToCSV}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-            >
-              📊 Xuất báo cáo
-            </button>
-            <button
               onClick={fetchOrders}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
             >
-              🔄 Làm mới
+              Làm mới
             </button>
           </div>
         </div>
@@ -484,7 +478,7 @@ Lý do: ${orderDetail.reason || "Không có"}`;
                 onClick={handleSearch}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
-                🔍 Tìm kiếm
+                Tìm kiếm
               </button>
               <button
                 onClick={() => {
@@ -494,7 +488,7 @@ Lý do: ${orderDetail.reason || "Không có"}`;
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
               >
-                🗑️ Xóa bộ lọc
+                Xóa bộ lọc
               </button>
             </div>
           </div>
@@ -557,7 +551,7 @@ Lý do: ${orderDetail.reason || "Không có"}`;
                       className="px-6 py-8 text-center text-gray-500"
                     >
                       <div className="flex flex-col items-center">
-                        <span className="text-4xl mb-2">📭</span>
+                        <span className="text-4xl mb-2"></span>
                         <span>Không có đơn hàng nào phù hợp</span>
                         <span className="text-sm mt-1">
                           Tab: {activeTab.toUpperCase()} | Tổng orders:{" "}
@@ -620,13 +614,6 @@ Lý do: ${orderDetail.reason || "Không có"}`;
                             title="Xem chi tiết"
                           >
                             👁️
-                          </button>
-                          <button
-                            onClick={() => window.print()}
-                            className="text-green-600 hover:text-green-900 transition-colors"
-                            title="In hóa đơn"
-                          >
-                            🖨️
                           </button>
                         </div>
                       </td>

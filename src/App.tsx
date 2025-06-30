@@ -37,6 +37,8 @@ import Blog from "./components/Blog/Blog";
 import StatusBlog from "./components/StatusBlog/StatusBlog";
 import AptPayPage from "./pages/AptPaypage/AptPayPage";
 import AptOrderHistory from "./pages/AptPageOrderHistory/AptOrderHistory";
+import AptPages from "./pages/AptPages/AptPage";
+
 export default function App() {
   const isAuthenticated = localStorage.getItem("token");
 
@@ -61,7 +63,8 @@ export default function App() {
               <Route path="/form-elements" element={<FormElements />} />
               <Route path="/tour" element={<Tour />} />
               <Route path="/imgtour" element={<Imgtour />} />
-              <Route path="/apt" element={<AptPage />} />
+              <Route path="/aptpayment" element={<AptPage />} />
+              <Route path="/apt" element={<AptPages />} />
               <Route path="/imgapt" element={<ImgAptPage />} />
               <Route path="/cif" element={<CIFPage />} />
               <Route path="/perms" element={<PermsPage />} />
